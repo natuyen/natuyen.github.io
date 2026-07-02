@@ -125,6 +125,8 @@
 
   .sprint-group { border-bottom: 1px solid var(--border); }
   .sprint-group:last-child { border-bottom: none; }
+  .sprint-group.grp-dragging { opacity: 0.4; }
+  .sprint-group.grp-drag-over > .sprint-header { box-shadow: 0 -2px 0 var(--accent) inset; }
 
   .sprint-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -460,6 +462,7 @@
     <div class="header-sub">Drag to reorder &middot; Click to view detail</div>
   </div>
   <div class="header-actions">
+    <input type="text" id="filterInput" placeholder="Filter PBI..." oninput="applyFilter(this.value)" style="padding:3px 10px;font-size:11px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;width:150px;background:rgba(255,255,255,0.1);color:#fff;font-family:var(--body);outline:none;">
     <span class="save-indicator" id="saveIndicator"></span>
     <button class="btn btn-ghost" onclick="addGroup()">+ Group</button>
     <button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button>
@@ -585,6 +588,7 @@ let editing = false;
 let draggedPbiId = null;
 let draggedFromSprint = null;
 let didDrag = false;
+let filterQuery = '';
 
 function loadState() {
   try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
@@ -647,6 +651,29 @@ function descHtml(line) {
   return esc(line).replace(/&lt;code&gt;/g, '<code>').replace(/&lt;\/code&gt;/g, '</code>');
 }
 
+function pbiMatchesFilter(id) {
+  if (!filterQuery) return true;
+  const p = getEditedPbi(id);
+  if (!p) return false;
+  const q = filterQuery.toLowerCase();
+  return String(p.id).includes(q)
+    || p.summary.toLowerCase().includes(q)
+    || String(p.sp) === q;
+}
+
+// ── Search / Filter ──
+function applyFilter(q) {
+  filterQuery = q.trim();
+  renderList();
+}
+// Clear the active filter and its input (called after import/reset so a stale
+// filter can't hide the freshly loaded PBIs).
+function clearFilter() {
+  filterQuery = '';
+  const inp = document.getElementById('filterInput');
+  if (inp) inp.value = '';
+}
+
 // ── Save / Reset ──
 function saveOrder() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -658,6 +685,7 @@ function resetOrder() {
   PBIS.length = 0;
   Object.keys(DET).forEach(k => delete DET[k]);
   state = []; edits = {};
+  clearFilter();
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(EDITS_KEY);
   localStorage.removeItem(DATA_KEY);
@@ -702,8 +730,11 @@ function renderList() {
   const assigned = new Set(state.flatMap(s => s.pbiIds));
   const unas = PBIS.filter(p => !assigned.has(p.id));
 
+  const allIds = PBIS.map(p => p.id);
+  const matchedCount = filterQuery ? allIds.filter(id => pbiMatchesFilter(id)).length : PBIS.length;
+
   document.getElementById("statsBar").innerHTML =
-    `<span><strong>${PBIS.length}</strong> PBIs</span>` +
+    `<span><strong>${filterQuery ? matchedCount + ' / ' : ''}${PBIS.length}</strong> PBIs</span>` +
     `<span><strong>${totalSP}</strong> SP</span>` +
     `<span><strong>${state.length}</strong> sprints</span>` +
     (unas.length ? `<span><strong>${unas.length}</strong> unassigned</span>` : '');
@@ -711,17 +742,19 @@ function renderList() {
   let h = '';
   state.forEach((sp, si) => {
     const pts = sp.pbiIds.reduce((s,id) => s + (getEditedPbi(id)?.sp||0), 0);
-    h += `<div class="sprint-group" data-si="${si}">
+    h += `<div class="sprint-group" data-si="${si}" draggable="true" ondragstart="grpDragStart(event,${si})" ondragend="grpDragEnd(event)" ondragover="grpDragOver(event,${si})" ondragleave="grpDragLeave(event)" ondrop="grpDrop(event,${si})">
       <div class="sprint-header" onclick="toggleSp(this)" ondragover="dHeaderOver(event)" ondrop="dDropHeader(event,${si})">
         <div class="sprint-title"><span class="chevron">&#9660;</span>${esc(sp.name)}<span class="sprint-focus">${esc(sp.focus)}</span></div>
         <div class="sprint-meta">
+          <button class="grp-btn" onclick="event.stopPropagation();moveGroup(${si},-1)" title="Move up">&#9650;</button>
+          <button class="grp-btn" onclick="event.stopPropagation();moveGroup(${si},1)" title="Move down">&#9660;</button>
           <button class="grp-btn" onclick="event.stopPropagation();renameGroup(${si})" title="Rename">&#9998;</button>
           <button class="grp-btn grp-btn-del" onclick="event.stopPropagation();deleteGroup(${si})" title="Delete group">&times;</button>
           <span class="sprint-count">${sp.pbiIds.length}</span><span class="sprint-sp">${pts} SP</span>
         </div>
       </div>
       <div class="pbi-list" data-si="${si}" ondragover="dOver(event,${si})" ondragleave="dLeave(event)" ondrop="dDrop(event,${si})">`;
-    sp.pbiIds.forEach((pid,pi) => { const p = getPbi(pid); if(p) h += pbiRow(p,si,pi); });
+    sp.pbiIds.forEach((pid,pi) => { const p = getPbi(pid); if(p && pbiMatchesFilter(pid)) h += pbiRow(p,si,pi); });
     h += `</div></div>`;
   });
 
@@ -733,7 +766,7 @@ function renderList() {
         <div class="sprint-meta"><span class="sprint-count">${unas.length}</span><span class="sprint-sp">${usp} SP</span></div>
       </div>
       <div class="pbi-list" data-si="-1" ondragover="dOver(event,-1)" ondragleave="dLeave(event)" ondrop="dDrop(event,-1)">`;
-    unas.forEach((p,i) => { h += pbiRow(p,-1,i); });
+    unas.filter(p => pbiMatchesFilter(p.id)).forEach((p,i) => { h += pbiRow(p,-1,i); });
     h += `</div></div>`;
   }
 
@@ -870,6 +903,7 @@ function renderDetail() {
         <div class="detail-toolbar">
           <button class="detail-edit-btn" onclick="toggleEdit()" title="Edit">&#9998;</button>
           <button class="detail-edit-btn" onclick="duplicatePbi(${p.id})" title="Duplicate">&#10064;</button>
+          <button class="detail-edit-btn" onclick="deletePbi(${p.id})" title="Delete" style="color:var(--danger);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
           <button class="detail-close-btn" onclick="closeDetail()" title="Close">&times;</button>
         </div>
       </div>
@@ -925,6 +959,7 @@ function navPbi(dir) {
 
 // ── Drag & drop ──
 function dStart(e, pid, si) {
+  e.stopPropagation();
   didDrag = true; draggedPbiId = pid; draggedFromSprint = si;
   e.target.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
@@ -1031,7 +1066,7 @@ function getVersionStamp() {
 }
 // Filename-safe form: "2026-07-01 13:10" → "2026-07-01_1310".
 function versionForFilename(v) {
-  return v.replace(' ', '_').replace(':', '');
+  return v.replace(/ /g, '_').replace(/:/g, '');
 }
 function updateVersionDisplay() {
   const base = 'Drag to reorder &middot; Click to view detail';
@@ -1207,7 +1242,6 @@ function previewSprintImport() {
 }
 function applySprintImport() {
   if (!sprintImportParsed) return;
-  const allMentioned = new Set(sprintImportParsed.flatMap(s => s.pbiIds));
   sprintImportParsed.forEach(imp => {
     let grp = state.find(s => s.name === imp.name);
     if (!grp) { grp = { name: imp.name, focus: imp.focus, pbiIds: [] }; state.push(grp); }
@@ -1216,6 +1250,16 @@ function applySprintImport() {
       state.forEach(s => { s.pbiIds = s.pbiIds.filter(x => x !== id); });
       grp.pbiIds.push(id);
     });
+  });
+  // Reorder state to match the import order; groups not in the import stay at the end.
+  const importOrder = sprintImportParsed.map(imp => imp.name);
+  state.sort((a, b) => {
+    const ai = importOrder.indexOf(a.name);
+    const bi = importOrder.indexOf(b.name);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
   });
   closeSprintImport();
   renderList(); updateSaveIndicator(false);
@@ -1314,7 +1358,7 @@ function exportFullBoard() {
   js = js.replace('[]/*STATE_DATA*/', () => safeJson(exportState));
   js = js.replace('null/*VERSION_DATA*/', () => safeJson(version));
   const bodyHtml = `
-<div class="header"><div><div style="display:flex;align-items:center;gap:6px;"><h1 id="boardTitle" ondblclick="editTitle()">${esc(titleText)}</h1><button class="title-edit-icon" onclick="editTitle()" title="Edit title">&#9998;</button></div><div class="header-sub">Drag to reorder &middot; Click to view detail${version ? ' &middot; v' + esc(version) : ''}</div></div><div class="header-actions"><span class="save-indicator" id="saveIndicator"></span><button class="btn btn-ghost" onclick="addGroup()">+ Group</button><button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button><button class="btn btn-ghost" onclick="openSprintImport()">Import / Export Sprint Plan</button><div class="menu-parent" id="menuBoard"><button class="btn btn-ghost" onclick="toggleMenu('menuBoard')">Import / Export Full Board &#9662;</button><div class="menu-drop"><button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button><button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button><button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button><button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export Full Board with embedded data</button></div></div><button class="btn btn-ghost" onclick="resetOrder()">Reset</button><button class="btn btn-save" onclick="saveOrder()">Save into Browser</button><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label></div></div>
+<div class="header"><div><div style="display:flex;align-items:center;gap:6px;"><h1 id="boardTitle" ondblclick="editTitle()">${esc(titleText)}</h1><button class="title-edit-icon" onclick="editTitle()" title="Edit title">&#9998;</button></div><div class="header-sub">Drag to reorder &middot; Click to view detail${version ? ' &middot; v' + esc(version) : ''}</div></div><div class="header-actions"><input type="text" id="filterInput" placeholder="Filter PBI..." oninput="applyFilter(this.value)" style="padding:3px 10px;font-size:11px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;width:150px;background:rgba(255,255,255,0.1);color:#fff;font-family:var(--body);outline:none;"><span class="save-indicator" id="saveIndicator"></span><button class="btn btn-ghost" onclick="addGroup()">+ Group</button><button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button><button class="btn btn-ghost" onclick="openSprintImport()">Import / Export Sprint Plan</button><div class="menu-parent" id="menuBoard"><button class="btn btn-ghost" onclick="toggleMenu('menuBoard')">Import / Export Full Board &#9662;</button><div class="menu-drop"><button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button><button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button><button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button><button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export Full Board with embedded data</button></div></div><button class="btn btn-ghost" onclick="resetOrder()">Reset</button><button class="btn btn-save" onclick="saveOrder()">Save into Browser</button><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label></div></div>
 <div class="shell"><div class="left-pane" id="leftPane"><div class="stats-bar" id="statsBar"></div><div class="list-scroll" id="listScroll"></div></div><div class="resize-handle" id="resizeHandle"></div><div class="right-pane" id="rightPane"></div></div>
 <div class="toast" id="toast"></div>
 <div class="modal-overlay" id="exportOverlay" onclick="if(event.target===this)closeExport()"><div class="modal"><h2>Export Sprint Plan</h2><div class="modal-body"><textarea id="exportText" readonly></textarea></div><div class="modal-actions"><button class="btn-modal" onclick="closeExport()">Close</button><button class="btn-modal btn-modal-primary" onclick="copyExport()">Copy</button></div></div></div>
@@ -1596,12 +1640,23 @@ function confirmImport() {
         src.pbiIds.forEach(id => { if (!target.pbiIds.includes(id)) target.pbiIds.push(id); });
         if (src.focus) target.focus = src.focus;
       });
+      // Reorder state to match the import order; unmentioned groups stay at end
+      const importOrder = sprints.map(s => s.name);
+      state.sort((a, b) => {
+        const ai = importOrder.indexOf(a.name);
+        const bi = importOrder.indexOf(b.name);
+        if (ai === -1 && bi === -1) return 0;
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
     } else {
       state = sprints.map(s => ({ name: s.name, focus: s.focus, pbiIds: [...s.pbiIds] }));
     }
   }
 
   saveEdits(); saveData();
+  clearFilter();
   selectedId = null; editing = false;
   updateShell(); renderList(); renderDetail();
   updateSaveIndicator(false);
@@ -1613,6 +1668,17 @@ function confirmImport() {
 document.addEventListener('keydown', e => {
   if (document.querySelector('.modal-overlay.show')) return;
   if (editing) return;
+  const filterFocused = document.activeElement && document.activeElement.id === 'filterInput';
+  if (filterFocused) {
+    if (e.key === 'Escape') { e.preventDefault(); document.activeElement.value = ''; applyFilter(''); document.activeElement.blur(); }
+    return;
+  }
+  if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    const inp = document.getElementById('filterInput');
+    if (inp) inp.focus();
+    return;
+  }
   if (e.key === 'Escape' && selectedId) { e.preventDefault(); closeDetail(); return; }
   if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); navPbi(1); }
   if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); navPbi(-1); }
@@ -1681,6 +1747,22 @@ function duplicatePbi(id) {
   showToast('PBI duplicated');
 }
 
+function deletePbi(id) {
+  const p = getEditedPbi(id);
+  if (!p) return;
+  if (!confirm(`Delete PBI-${id}: "${p.summary}"?\nThis cannot be undone.`)) return;
+  const pbiIdx = PBIS.findIndex(x => x.id === id);
+  if (pbiIdx >= 0) PBIS.splice(pbiIdx, 1);
+  delete DET[id];
+  delete edits[id];
+  state.forEach(s => { s.pbiIds = s.pbiIds.filter(x => x !== id); });
+  saveData(); saveEdits();
+  if (selectedId === id) { selectedId = null; editing = false; updateShell(); }
+  renderList(); renderDetail();
+  updateSaveIndicator(false);
+  showToast('PBI-' + id + ' deleted');
+}
+
 function addNewPbi() {
   const maxId = PBIS.reduce((mx, p) => Math.max(mx, p.id), 0);
   const newId = maxId + 1;
@@ -1693,22 +1775,36 @@ function addNewPbi() {
 }
 
 function addGroup() {
-  const name = prompt('Group name (e.g. Sprint 12, Design, Backend):');
+  let defaultName = 'Sprint 1';
+  if (state.length) {
+    const last = state[state.length - 1].name;
+    const m = last.match(/^(.+?)(\d+)$/);
+    if (m) {
+      const maxNum = state.reduce((mx, s) => {
+        const sm = s.name.match(/^(.+?)(\d+)$/);
+        return (sm && sm[1] === m[1]) ? Math.max(mx, parseInt(sm[2])) : mx;
+      }, 0);
+      defaultName = m[1] + (maxNum + 1);
+    } else {
+      defaultName = last + ' 2';
+    }
+  }
+  const name = prompt('Group name:', defaultName);
   if (!name || !name.trim()) return;
-  const formatted = name.trim().replace(/\s+/g, '-');
+  const formatted = name.trim();
   const exists = state.find(s => s.name.toLowerCase() === formatted.toLowerCase());
   if (exists) { showToast('Group already exists'); return; }
   state.push({ name: formatted, focus: '', pbiIds: [] });
   renderList();
   updateSaveIndicator(false);
-  showToast('Added: ' + name.trim());
+  showToast('Added: ' + formatted);
 }
 
 function renameGroup(si) {
   const old = state[si].name;
   const name = prompt('Rename group:', old);
   if (!name || !name.trim() || name.trim() === old) return;
-  state[si].name = name.trim().replace(/\s+/g, '-');
+  state[si].name = name.trim();
   renderList(); updateSaveIndicator(false);
 }
 
@@ -1718,6 +1814,52 @@ function deleteGroup(si) {
   state.splice(si, 1);
   renderList(); updateSaveIndicator(false);
   showToast('Deleted: ' + grp.name);
+}
+
+function moveGroup(si, dir) {
+  const target = si + dir;
+  if (target < 0 || target >= state.length) return;
+  const tmp = state[si];
+  state[si] = state[target];
+  state[target] = tmp;
+  renderList(); updateSaveIndicator(false);
+}
+
+// ── Group drag & drop ──
+let draggedGroupIdx = null;
+
+function grpDragStart(e, si) {
+  if (draggedPbiId !== null) return;
+  if (e.target.closest('.pbi-row')) return;
+  draggedGroupIdx = si;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', 'group-' + si);
+  e.currentTarget.classList.add('grp-dragging');
+}
+function grpDragEnd(e) {
+  e.currentTarget.classList.remove('grp-dragging');
+  document.querySelectorAll('.sprint-group').forEach(g => g.classList.remove('grp-drag-over'));
+  draggedGroupIdx = null;
+}
+function grpDragOver(e, si) {
+  if (draggedGroupIdx === null || draggedPbiId !== null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('grp-drag-over');
+}
+function grpDragLeave(e) {
+  if (draggedGroupIdx === null) return;
+  const grp = e.currentTarget;
+  if (!grp.contains(e.relatedTarget)) grp.classList.remove('grp-drag-over');
+}
+function grpDrop(e, targetSi) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (draggedGroupIdx === null || draggedGroupIdx === targetSi) return;
+  const moved = state.splice(draggedGroupIdx, 1)[0];
+  state.splice(targetSi, 0, moved);
+  draggedGroupIdx = null;
+  renderList(); updateSaveIndicator(false);
 }
 
 // ── Welcome screen ──
