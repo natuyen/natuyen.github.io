@@ -1,0 +1,1779 @@
+<title>Share Mail — PBI Board</title>
+<style id="app-style">
+  @font-face {
+    font-family: 'JB Mono';
+    src: local('JetBrains Mono'), local('SF Mono'), local('Menlo'), local('Consolas');
+  }
+
+  :root {
+    --ink: #1E2030;
+    --ink-mid: #4A4D5E;
+    --ink-light: #8B8EA0;
+    --surface: #F4F3F0;
+    --card: #FFFFFF;
+    --border: #DDDCE0;
+    --accent: #3B6B9A;
+    --accent-light: #E8F0F8;
+    --drag-over: #D4E4F2;
+    --sprint-head: #2D3047;
+    --sprint-head-text: #fff;
+    --sp-badge: #6B6E7B;
+    --danger: #C44D4D;
+    --mono: 'JB Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+    --body: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    --left-w: 420px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: var(--body);
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--sprint-head);
+    color: #fff;
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 50;
+  }
+  .header h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; }
+  .header h1:hover { opacity: 0.8; }
+  .title-edit { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 15px; font-weight: 600; font-family: var(--body); padding: 2px 8px; border-radius: 4px; outline: none; width: 300px; }
+  .header-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    font-family: var(--body); font-size: 12px; font-weight: 500;
+    padding: 5px 14px; border-radius: 5px; border: none; cursor: pointer;
+    transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn-save { background: var(--accent); color: #fff; }
+  .btn-save:hover { background: #2E5A85; }
+  .btn-ghost {
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.13);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  .menu-parent { position: relative; display: inline-block; }
+  .menu-parent .menu-drop {
+    display: none; position: absolute; top: 100%; left: 0; z-index: 100;
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15); min-width: 280px; padding: 4px 0;
+    margin-top: 4px;
+  }
+  .menu-parent.open .menu-drop { display: block; }
+  .menu-drop-item {
+    display: block; width: 100%; padding: 8px 16px; border: none; background: none;
+    text-align: left; font-size: 12px; color: var(--ink); cursor: pointer;
+    font-family: var(--body); white-space: nowrap;
+  }
+  .menu-drop-item:hover { background: var(--accent-light); color: var(--accent); }
+  .title-edit-icon {
+    background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer;
+    font-size: 13px; padding: 0 4px; vertical-align: middle; line-height: 1;
+  }
+  .title-edit-icon:hover { color: #fff; }
+  .save-indicator { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .save-indicator.saved { color: #7ECBA1; }
+
+  /* ── Two-pane shell ── */
+  .shell {
+    flex: 1; display: flex; min-height: 0;
+  }
+
+  /* ── Left pane: list ── */
+  .left-pane {
+    flex: 1;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    background: var(--card);
+    transition: flex 0.2s;
+  }
+  .shell.has-detail .left-pane {
+    flex: 0 0 var(--left-w);
+    max-width: 55vw;
+  }
+
+  .stats-bar {
+    display: flex; gap: 14px; padding: 10px 16px;
+    font-size: 12px; color: var(--ink-mid);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+  }
+  .stats-bar strong { color: var(--ink); font-weight: 600; }
+
+  .list-scroll {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+  }
+
+  .sprint-group { border-bottom: 1px solid var(--border); }
+  .sprint-group:last-child { border-bottom: none; }
+
+  .sprint-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 16px; background: var(--sprint-head); color: #fff;
+    cursor: pointer; user-select: none; position: sticky; top: 0; z-index: 10;
+  }
+  .sprint-header:hover { background: #363A52; }
+
+  .sprint-title {
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sprint-title .chevron {
+    font-size: 9px; transition: transform 0.2s; opacity: 0.5;
+  }
+  .sprint-group.collapsed .chevron { transform: rotate(-90deg); }
+  .sprint-focus {
+    font-size: 12px; opacity: 0.65; font-weight: 600;
+  }
+  .sprint-meta { display: flex; gap: 10px; align-items: center; font-size: 11px; }
+  .grp-btn { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1; opacity: 0; transition: opacity .15s; }
+  .sprint-header:hover .grp-btn { opacity: 1; }
+  .grp-btn:hover { color: #fff; }
+  .grp-btn-del:hover { color: var(--danger); }
+  .sprint-sp {
+    font-family: var(--mono); font-size: 11px;
+    background: rgba(255,255,255,0.13); padding: 1px 8px; border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sprint-count { opacity: 0.45; }
+
+  .pbi-list { min-height: 36px; transition: background 0.12s; }
+  .sprint-group.collapsed .pbi-list { display: none; }
+  .pbi-list.drag-over { background: var(--drag-over); }
+
+  .pbi-row {
+    display: grid;
+    grid-template-columns: 22px 58px 1fr 46px 20px;
+    align-items: center; gap: 5px;
+    padding: 7px 16px; border-bottom: 1px solid #F2F1EF;
+    cursor: pointer; transition: background 0.1s; font-size: 12px;
+  }
+  .pbi-row:last-child { border-bottom: none; }
+  .pbi-row:hover { background: #F8F7F5; }
+  .pbi-row.selected { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 13px; }
+  .pbi-row.dragging { opacity: 0.35; }
+
+  .pbi-handle { color: var(--ink-light); font-size: 12px; cursor: grab; text-align: center; line-height: 1; }
+  .pbi-id { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+  .pbi-name {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--ink); font-size: 12px; line-height: 1.35;
+    display: flex; align-items: center; gap: 4px; min-width: 0;
+  }
+  .pbi-sp {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    color: var(--sp-badge); background: #F0EfED; padding: 1px 6px;
+    border-radius: 3px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .pbi-rm {
+    background: none; border: none; color: var(--ink-light); cursor: pointer;
+    font-size: 14px; padding: 0; line-height: 1; opacity: 0; transition: opacity 0.12s;
+    border-radius: 3px;
+  }
+  .pbi-row:hover .pbi-rm { opacity: 1; }
+  .pbi-rm:hover { color: var(--danger); }
+  .pbi-move {
+    background: none; border: none; color: var(--ink-light); cursor: pointer;
+    font-size: 16px; padding: 0; line-height: 1; opacity: 0; transition: opacity 0.12s;
+  }
+  .pbi-row:hover .pbi-move { opacity: 1; }
+  .pbi-move:hover { color: var(--accent); }
+  .move-menu {
+    position: fixed; z-index: 200; background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px;
+    padding: 4px 0; font-size: 12px;
+  }
+  .move-menu-item {
+    padding: 6px 14px; cursor: pointer; display: block; width: 100%;
+    background: none; border: none; text-align: left; font-size: 12px; color: var(--ink);
+  }
+  .move-menu-item:hover { background: var(--accent-light); color: var(--accent); }
+  .move-menu-item.disabled { color: var(--ink-light); pointer-events: none; }
+
+  .unassigned-section .sprint-header { background: var(--ink-light); }
+
+  /* ── Resize handle ── */
+  .resize-handle {
+    width: 6px; cursor: col-resize; background: var(--border);
+    flex-shrink: 0; position: relative; z-index: 20;
+    transition: background 0.15s;
+    display: none;
+  }
+  .shell.has-detail .resize-handle { display: block; }
+  .resize-handle:hover, .resize-handle.active { background: var(--accent); opacity: 0.3; }
+
+  /* ── Right pane: detail ── */
+  .right-pane {
+    flex: 1; min-width: 0;
+    display: none; flex-direction: column;
+    background: var(--card);
+  }
+  .shell.has-detail .right-pane { display: flex; }
+
+  .detail-empty {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    color: var(--ink-light); font-size: 14px; text-align: center; padding: 40px;
+  }
+  .detail-empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.25; }
+
+  .detail-head {
+    padding: 20px 28px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .detail-head-top {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .detail-pbi-id {
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    color: var(--accent); letter-spacing: 0.02em;
+  }
+  .detail-pbi-sp {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--sp-badge); background: #F0EfED; padding: 2px 10px;
+    border-radius: 4px; font-variant-numeric: tabular-nums;
+  }
+  .detail-sprint-tag {
+    font-size: 11px; color: var(--ink-light);
+    background: var(--surface); padding: 2px 10px; border-radius: 4px;
+  }
+  .detail-title {
+    font-size: 18px; font-weight: 600; line-height: 1.35; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .detail-move-btn {
+    background: none; border: 1px solid var(--border); color: var(--ink-light); cursor: pointer;
+    font-size: 16px; padding: 2px 6px; border-radius: 4px; line-height: 1; flex-shrink: 0;
+  }
+  .detail-move-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .detail-nav {
+    display: flex; gap: 6px; padding: 0 28px; margin-top: 10px;
+  }
+  .detail-nav-btn {
+    font-family: var(--body); font-size: 11px; font-weight: 500;
+    padding: 4px 12px; border-radius: 5px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--ink-mid); cursor: pointer; transition: all 0.1s;
+  }
+  .detail-nav-btn:hover { background: var(--surface); color: var(--ink); }
+  .detail-nav-btn:disabled { opacity: 0.25; cursor: default; }
+  .detail-nav-btn:disabled:hover { background: var(--card); color: var(--ink-mid); }
+
+  .detail-scroll {
+    flex: 1; overflow-y: auto; padding: 20px 28px 40px;
+  }
+
+  .detail-section { margin-bottom: 24px; }
+  .detail-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-light); margin-bottom: 8px;
+  }
+  .detail-desc { font-size: 13px; line-height: 1.7; color: var(--ink-mid); }
+  .detail-desc ul { padding-left: 18px; margin: 0; }
+  .detail-desc li { margin-bottom: 4px; }
+  .detail-desc code {
+    font-family: var(--mono); font-size: 11px;
+    background: #F0EfED; padding: 1px 6px; border-radius: 3px;
+    color: var(--ink); word-break: break-all;
+  }
+  .detail-coa {
+    font-family: var(--mono); font-size: 12px; line-height: 1.75;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 18px; color: var(--ink);
+    white-space: pre-wrap; overflow-x: auto;
+  }
+
+  /* ── Detail toolbar ── */
+  .detail-toolbar {
+    display: flex; gap: 6px; align-items: center; margin-left: auto;
+  }
+  .detail-close-btn, .detail-edit-btn {
+    background: none; border: 1px solid var(--border); color: var(--ink-mid);
+    width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+    font-size: 15px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s; flex-shrink: 0;
+  }
+  .detail-close-btn:hover, .detail-edit-btn:hover { background: var(--surface); color: var(--ink); }
+  .detail-edit-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Edit mode ── */
+  .edit-field-group { margin-bottom: 18px; }
+  .edit-field-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-light); margin-bottom: 6px;
+  }
+  .edit-input, .edit-textarea {
+    font-family: var(--body); font-size: 13px; line-height: 1.5;
+    color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; width: 100%; transition: border-color 0.15s;
+  }
+  .edit-input:focus, .edit-textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,107,154,0.12);
+  }
+  .edit-textarea {
+    font-family: var(--mono); font-size: 12px; line-height: 1.7;
+    min-height: 120px; resize: vertical;
+  }
+  .edit-sp-input {
+    width: 70px; text-align: center;
+    font-family: var(--mono); font-weight: 600;
+  }
+  .edit-actions {
+    display: flex; gap: 8px; margin-top: 16px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .edit-save-btn {
+    font-family: var(--body); font-size: 12px; font-weight: 600;
+    padding: 7px 20px; border-radius: 6px; border: none;
+    background: var(--accent); color: #fff; cursor: pointer;
+    transition: background 0.12s;
+  }
+  .edit-save-btn:hover { background: #2E5A85; }
+  .edit-cancel-btn {
+    font-family: var(--body); font-size: 12px; font-weight: 500;
+    padding: 7px 16px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--ink-mid); cursor: pointer;
+  }
+  .edit-cancel-btn:hover { background: var(--surface); color: var(--ink); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(70px);
+    background: var(--sprint-head); color: #fff;
+    padding: 8px 18px; border-radius: 7px;
+    font-size: 12px; font-weight: 500;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 200; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Export modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 300;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 12px; padding: 24px;
+    max-width: 680px; width: 90%; max-height: 80vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+  .modal h2 { font-size: 16px; margin-bottom: 12px; flex-shrink: 0; }
+  .modal-body { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  #importPreview { flex: 1; min-height: 0; display: flex; }
+  #importPreview:empty { display: none; }
+  .modal textarea {
+    font-family: var(--mono); font-size: 12px; line-height: 1.6;
+    border: 1px solid var(--border); border-radius: 6px; padding: 14px;
+    width: 100%; min-height: 200px; resize: none;
+    color: var(--ink); background: var(--surface);
+  }
+  #importText { min-height: 280px; }
+  #importOverlay .modal { max-height: 90vh; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; flex-shrink: 0; }
+  .btn-modal {
+    font-family: var(--body); font-size: 13px; font-weight: 500;
+    padding: 7px 18px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--ink); cursor: pointer;
+  }
+  .btn-modal:hover { background: var(--surface); }
+  .btn-modal-primary { background: var(--accent); color: #fff; border: none; }
+  .btn-modal-primary:hover { background: #2E5A85; }
+  .btn-modal-primary:disabled { opacity: 0.35; cursor: default; }
+  .btn-modal-primary:disabled:hover { background: var(--accent); }
+
+  .import-hint {
+    font-size: 12px; color: var(--ink-mid); margin-bottom: 10px; line-height: 1.5;
+  }
+  .import-hint code {
+    font-family: var(--mono); font-size: 11px; background: #F0EfED;
+    padding: 1px 5px; border-radius: 3px;
+  }
+  .drop-zone {
+    border: 2px dashed var(--border); border-radius: 8px; padding: 5px;
+    text-align: center; color: var(--ink-light); font-size: 13px;
+    margin-bottom: 10px; transition: all .15s; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .drop-zone.drag-over {
+    border-color: var(--accent); background: var(--accent-light); color: var(--accent);
+  }
+  .drop-zone .drop-icon { font-size: 20px; }
+  .import-preview {
+    margin-top: 10px; padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; line-height: 1.6; color: var(--ink-mid);
+    flex: 1; min-height: 80px; max-height: 420px; overflow-y: auto;
+  }
+  .import-preview strong { color: var(--ink); }
+  .import-preview .import-ok { color: var(--accent); }
+  .import-preview .import-warn { color: #C48A2D; }
+  .import-preview .import-new { color: #3A8A5C; }
+
+  /* ── Mobile ── */
+  @media (max-width: 700px) {
+    .shell { flex-direction: column; }
+    .left-pane { max-width: 100% !important; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); }
+    .shell.has-detail .left-pane { flex: 0 0 45vh !important; max-width: 100% !important; }
+    .resize-handle { display: none; }
+    .right-pane { min-height: 0; }
+    .pbi-row { grid-template-columns: 20px 50px 1fr 36px 18px; }
+    .pbi-rm { display: none; }
+    .sprint-focus { display: none; }
+    .detail-head { padding: 16px 18px 12px; }
+    .detail-scroll { padding: 16px 18px 32px; }
+    .detail-title { font-size: 15px; }
+  }
+</style>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div style="display:flex;align-items:center;gap:6px;"><h1 id="boardTitle" ondblclick="editTitle()">PBI Board/*TITLE_DATA*/</h1><button class="title-edit-icon" onclick="editTitle()" title="Edit title">&#9998;</button></div>
+    <div class="header-sub">Drag to reorder &middot; Click to view detail</div>
+  </div>
+  <div class="header-actions">
+    <span class="save-indicator" id="saveIndicator"></span>
+    <button class="btn btn-ghost" onclick="addGroup()">+ Group</button>
+    <button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button>
+    <button class="btn btn-ghost" onclick="openSprintImport()">Import / Export Sprint Plan</button>
+    <div class="menu-parent" id="menuBoard">
+      <button class="btn btn-ghost" onclick="toggleMenu('menuBoard')">Import / Export .md &#9662;</button>
+      <div class="menu-drop">
+        <button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button>
+        <button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button>
+        <button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button>
+        <button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export Full Board with embedded data</button>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="resetOrder()">Reset</button>
+    <button class="btn btn-save" onclick="saveOrder()">Save into Browser</button>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label>
+  </div>
+</div>
+
+<!-- Two-pane body -->
+<div class="shell">
+  <!-- Left: sprint list -->
+  <div class="left-pane" id="leftPane">
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="list-scroll" id="listScroll"></div>
+  </div>
+
+  <div class="resize-handle" id="resizeHandle"></div>
+
+  <!-- Right: detail -->
+  <div class="right-pane" id="rightPane"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="exportOverlay" onclick="if(event.target===this)closeExport()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Export Sprint Plan">
+    <h2>Export Sprint Plan</h2>
+    <div class="modal-body">
+      <textarea id="exportText" readonly></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal" onclick="closeExport()">Close</button>
+      <button class="btn-modal btn-modal-primary" onclick="copyExport()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importOverlay" onclick="if(event.target===this)closeImport()">
+  <div class="modal" style="max-width:780px;" role="dialog" aria-modal="true" aria-label="Import .md raw">
+    <h2>Import .md raw</h2>
+    <div class="modal-body">
+      <p class="import-hint">Drag &amp; drop a <code>.md</code> file or paste markdown content.</p>
+      <div id="dropZone" class="drop-zone" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
+        <span class="drop-icon">📄</span>
+        <span>Drop <code>.md</code> file here</span>
+        <button class="btn-modal" onclick="event.stopPropagation();document.getElementById('browseFile').click()" style="margin-top:8px;font-size:13px;padding:6px 16px;">Browse file...</button>
+        <input type="file" id="browseFile" accept=".md,.txt" style="display:none" onchange="browseFileSelected(this)">
+      </div>
+      <textarea id="importText" placeholder="Paste .md content or shorthand reorder:&#10;| Sprint 1 | PBI-1, PBI-3 | 12 | Focus |&#10;or Sprint-1:PBI-1, PBI-3"></textarea>
+      <div id="importPreview"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal" onclick="closeImport()">Cancel</button>
+      <button class="btn-modal" onclick="previewImport()">Preview</button>
+      <button class="btn-modal btn-modal-primary" id="importConfirmBtn" onclick="confirmImport()" disabled>Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sprintImportOverlay" onclick="if(event.target===this)closeSprintImport()">
+  <div class="modal" style="max-width:680px;" role="dialog" aria-modal="true" aria-label="Import / Export Sprint Plan">
+    <h2>Import / Export Sprint Plan</h2>
+    <div class="modal-body">
+      <p class="import-hint">Edit the sprint table or paste shorthand to reorder PBIs across sprints.</p>
+      <textarea id="sprintImportText" placeholder="Paste sprint reorder:&#10;| Sprint 1 | PBI-1, PBI-3 | 12 | Focus |&#10;or Sprint-1: PBI-1, PBI-3, PBI-5"></textarea>
+      <div id="sprintImportPreview" style="margin:10px 0;font-size:13px;color:var(--ink-mid);"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal" onclick="closeSprintImport()">Cancel</button>
+      <button class="btn-modal" onclick="previewSprintImport()">Preview</button>
+      <button class="btn-modal btn-modal-primary" id="sprintImportApplyBtn" onclick="applySprintImport()" disabled>Apply</button>
+    </div>
+  </div>
+</div>
+
+<script id="app-script">
+// ════════════════════════════════════════
+// DATA — loaded from localStorage, populated via Import
+// ════════════════════════════════════════
+const PBIS = [/*PBIS_DATA*/];
+const DET = {/*DET_DATA*/};
+
+const STORAGE_KEY = "pbi-board-state-v3";
+const EDITS_KEY = "pbi-board-edits-v3";
+const TITLE_KEY = "pbi-board-title-v3";
+const DATA_KEY = "pbi-board-data-v3";
+const VERSION_KEY = "pbi-board-version-v3";
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(DATA_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      PBIS.length = 0; PBIS.push(...(data.pbis || []));
+      Object.keys(DET).forEach(k => delete DET[k]);
+      Object.assign(DET, data.det || {});
+      return true;
+    }
+  } catch(e) {}
+  return PBIS.length > 0;
+}
+function saveData() {
+  localStorage.setItem(DATA_KEY, JSON.stringify({ pbis: PBIS, det: DET }));
+}
+
+let state = loadState();
+let edits = loadEdits();
+let currentVersion = null;
+let selectedId = null;
+let editing = false;
+let draggedPbiId = null;
+let draggedFromSprint = null;
+let didDrag = false;
+
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  return []/*STATE_DATA*/;
+}
+function loadEdits() {
+  try { const r = localStorage.getItem(EDITS_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  return {};
+}
+function saveEdits() { localStorage.setItem(EDITS_KEY, JSON.stringify(edits)); }
+
+function getPbi(id) { return PBIS.find(p => p.id === id); }
+function getEditedPbi(id) {
+  const base = getPbi(id);
+  const e = edits[id];
+  if (!e) return base;
+  return { ...base, summary: e.summary ?? base.summary, sp: e.sp ?? base.sp };
+}
+function getEditedDet(id) {
+  const base = DET[id] || { s: '', d: [], c: '' };
+  const e = edits[id];
+  if (!e) return base;
+  return { s: e.summ ?? base.s, d: e.desc ?? base.d, c: e.coa ?? base.c };
+}
+
+function updateShell() {
+  const hasDetail = selectedId !== null;
+  document.querySelector('.shell').classList.toggle('has-detail', hasDetail);
+  if (hasDetail && window._customPaneWidth) {
+    document.getElementById('leftPane').style.flex = `0 0 ${window._customPaneWidth}px`;
+  }
+}
+
+function findSprintFor(pbiId) {
+  for (let i = 0; i < state.length; i++) {
+    if (state[i].pbiIds.includes(pbiId)) return state[i].name;
+  }
+  return 'Unassigned';
+}
+function findSprintIndex(pbiId) {
+  for (let i = 0; i < state.length; i++) {
+    if (state[i].pbiIds.includes(pbiId)) return i;
+  }
+  return -1;
+}
+
+function getAllIds() {
+  const ids = []; state.forEach(s => ids.push(...s.pbiIds));
+  const set = new Set(ids); PBIS.forEach(p => { if (!set.has(p.id)) ids.push(p.id); });
+  return ids;
+}
+
+function esc(t) {
+  return String(t ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+// Render a description line: escape everything, then re-allow only <code> tags.
+function descHtml(line) {
+  return esc(line).replace(/&lt;code&gt;/g, '<code>').replace(/&lt;\/code&gt;/g, '</code>');
+}
+
+// ── Save / Reset ──
+function saveOrder() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  saveEdits(); saveData();
+  showToast("Saved"); updateSaveIndicator(true);
+}
+function resetOrder() {
+  if (!confirm("Clear all data? You will need to import a .md file again.")) return;
+  PBIS.length = 0;
+  Object.keys(DET).forEach(k => delete DET[k]);
+  state = []; edits = {};
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(EDITS_KEY);
+  localStorage.removeItem(DATA_KEY);
+  setVersion(null);
+  selectedId = null; editing = false;
+  updateShell(); renderList(); renderDetail();
+  showToast("All data cleared"); updateSaveIndicator(false);
+  showWelcome();
+}
+let autoSaveEnabled = true;
+function toggleAutoSave(on) {
+  autoSaveEnabled = on;
+  localStorage.setItem('pbi-board-autosave', on ? '1' : '0');
+}
+let versionEnabled = true;
+function toggleVersionControl(on) {
+  versionEnabled = on;
+  localStorage.setItem('pbi-board-version-enabled', on ? '1' : '0');
+}
+function autoSaveNow() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  saveEdits(); saveData();
+}
+function updateSaveIndicator(s) {
+  const el = document.getElementById("saveIndicator");
+  if (autoSaveEnabled && !s) {
+    autoSaveNow();
+    s = true;
+  }
+  el.textContent = s ? "Saved" : "Unsaved changes";
+  el.classList.toggle("saved", s);
+}
+function showToast(m) {
+  const el = document.getElementById("toast");
+  el.textContent = m; el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+// ── Render list (left pane) ──
+function renderList() {
+  const totalSP = PBIS.reduce((s,p) => s + getEditedPbi(p.id).sp, 0);
+  const assigned = new Set(state.flatMap(s => s.pbiIds));
+  const unas = PBIS.filter(p => !assigned.has(p.id));
+
+  document.getElementById("statsBar").innerHTML =
+    `<span><strong>${PBIS.length}</strong> PBIs</span>` +
+    `<span><strong>${totalSP}</strong> SP</span>` +
+    `<span><strong>${state.length}</strong> sprints</span>` +
+    (unas.length ? `<span><strong>${unas.length}</strong> unassigned</span>` : '');
+
+  let h = '';
+  state.forEach((sp, si) => {
+    const pts = sp.pbiIds.reduce((s,id) => s + (getEditedPbi(id)?.sp||0), 0);
+    h += `<div class="sprint-group" data-si="${si}">
+      <div class="sprint-header" onclick="toggleSp(this)" ondragover="dHeaderOver(event)" ondrop="dDropHeader(event,${si})">
+        <div class="sprint-title"><span class="chevron">&#9660;</span>${esc(sp.name)}<span class="sprint-focus">${esc(sp.focus)}</span></div>
+        <div class="sprint-meta">
+          <button class="grp-btn" onclick="event.stopPropagation();renameGroup(${si})" title="Rename">&#9998;</button>
+          <button class="grp-btn grp-btn-del" onclick="event.stopPropagation();deleteGroup(${si})" title="Delete group">&times;</button>
+          <span class="sprint-count">${sp.pbiIds.length}</span><span class="sprint-sp">${pts} SP</span>
+        </div>
+      </div>
+      <div class="pbi-list" data-si="${si}" ondragover="dOver(event,${si})" ondragleave="dLeave(event)" ondrop="dDrop(event,${si})">`;
+    sp.pbiIds.forEach((pid,pi) => { const p = getPbi(pid); if(p) h += pbiRow(p,si,pi); });
+    h += `</div></div>`;
+  });
+
+  if (unas.length) {
+    const usp = unas.reduce((s,p) => s + (getEditedPbi(p.id)?.sp||0), 0);
+    h += `<div class="sprint-group unassigned-section">
+      <div class="sprint-header" onclick="toggleSp(this)" ondragover="dHeaderOver(event)" ondrop="dDropHeader(event,-1)">
+        <div class="sprint-title"><span class="chevron">&#9660;</span>Unassigned</div>
+        <div class="sprint-meta"><span class="sprint-count">${unas.length}</span><span class="sprint-sp">${usp} SP</span></div>
+      </div>
+      <div class="pbi-list" data-si="-1" ondragover="dOver(event,-1)" ondragleave="dLeave(event)" ondrop="dDrop(event,-1)">`;
+    unas.forEach((p,i) => { h += pbiRow(p,-1,i); });
+    h += `</div></div>`;
+  }
+
+  document.getElementById("listScroll").innerHTML = h;
+}
+
+function pbiRow(origP, si, pi) {
+  const p = getEditedPbi(origP.id);
+  const sel = p.id === selectedId ? ' selected' : '';
+  return `<div class="pbi-row${sel}" data-pid="${p.id}" draggable="true"
+    onclick="selectPbi(event,${p.id})"
+    ondragstart="dStart(event,${p.id},${si})" ondragend="dEnd(event)"
+    ${si>=0 ? `ondragover="dItemOver(event)"` : ''}>
+    <span class="pbi-handle">⠿</span>
+    <span class="pbi-id">PBI-${p.id}</span>
+    <span class="pbi-name" title="${esc(p.summary)}">${esc(p.summary)}<button class="pbi-move" onclick="showMoveMenu(event,${p.id},${si})" title="Move to...">&#8674;</button></span>
+    <span class="pbi-sp">${p.sp} SP</span>
+    ${si>=0 ? `<button class="pbi-rm" onclick="rmPbi(event,${si},${pi})" title="Unassign">&times;</button>` : '<span></span>'}
+  </div>`;
+}
+
+function selectPbi(e, id) {
+  if (didDrag) return;
+  if (e.target.closest('.pbi-rm') || e.target.closest('.pbi-move')) return;
+  selectedId = id;
+  editing = false;
+  document.querySelectorAll('.pbi-row').forEach(r => r.classList.toggle('selected', +r.dataset.pid === id));
+  updateShell();
+  renderDetail();
+}
+
+function closeDetail() {
+  selectedId = null;
+  editing = false;
+  document.querySelectorAll('.pbi-row').forEach(r => r.classList.remove('selected'));
+  document.getElementById('leftPane').style.flex = '';
+  updateShell();
+  renderDetail();
+}
+
+function toggleEdit() {
+  editing = !editing;
+  renderDetail();
+}
+
+function toggleSp(el) { el.closest('.sprint-group').classList.toggle('collapsed'); }
+
+// ── Render detail (right pane) ──
+function renderDetail() {
+  const rp = document.getElementById("rightPane");
+  if (!selectedId) { rp.innerHTML = ''; return; }
+
+  const p = getEditedPbi(selectedId);
+  const det = getEditedDet(selectedId);
+  const sprint = findSprintFor(selectedId);
+  const allIds = getAllIds();
+  const idx = allIds.indexOf(selectedId);
+
+  if (editing) {
+    const descText = (det.d || []).map(d => d.replace(/<code>/g,'`').replace(/<\/code>/g,'`').replace(/&amp;/g,'&')).join('\n');
+    rp.innerHTML = `
+      <div class="detail-head">
+        <div class="detail-head-top">
+          <span class="detail-pbi-id">PBI-${p.id}</span>
+          <span class="detail-sprint-tag">${esc(sprint)}</span>
+          <div class="detail-toolbar">
+            <button class="detail-edit-btn active" onclick="toggleEdit()" title="Editing">&#9998;</button>
+            <button class="detail-close-btn" onclick="closeDetail()" title="Close">&times;</button>
+          </div>
+        </div>
+      </div>
+      <div class="detail-scroll">
+        <div class="edit-actions" style="border-top:none;margin-top:0;padding-top:0;">
+          <button class="edit-save-btn" onclick="saveEdit()">Save changes</button>
+          <button class="edit-cancel-btn" onclick="toggleEdit()">Cancel</button>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-end;">
+          <div class="edit-field-group" style="flex:0 0 auto;margin-bottom:18px;">
+            <div class="edit-field-label">Group</div>
+            <select class="edit-input" id="editGroup">
+              <option value="-1" ${findSprintIndex(selectedId)===-1?'selected':''}>Unassigned</option>
+              ${state.map((s,i) => `<option value="${i}" ${findSprintIndex(selectedId)===i?'selected':''}>${esc(s.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="edit-field-group" style="flex:1;min-width:0;margin-bottom:18px;">
+            <div class="edit-field-label">Title</div>
+            <input class="edit-input" id="editSummary" value="${esc(p.summary)}">
+          </div>
+        </div>
+        <div class="edit-field-group">
+          <div class="edit-field-label">Summary</div>
+          <input class="edit-input" id="editSumm" value="${esc(det.s||'')}">
+        </div>
+        <div class="edit-field-group">
+          <div class="edit-field-label">Story Points</div>
+          <input class="edit-input edit-sp-input" id="editSp" type="number" min="0" max="99" value="${p.sp}">
+        </div>
+        <div class="edit-field-group">
+          <div class="edit-field-label">Description (one item per line, use \`backticks\` for code)</div>
+          <textarea class="edit-textarea" id="editDesc" rows="6">${esc(descText)}</textarea>
+        </div>
+        <div class="edit-field-group">
+          <div class="edit-field-label">Conditions of Acceptance</div>
+          <textarea class="edit-textarea" id="editCoa" rows="8">${esc(det.c || '')}</textarea>
+        </div>
+        <div class="edit-actions">
+          <button class="edit-save-btn" onclick="saveEdit()">Save changes</button>
+          <button class="edit-cancel-btn" onclick="toggleEdit()">Cancel</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let body = '';
+  if (det.s) {
+    body += `<div class="detail-section"><div class="detail-label">Summary</div><div class="detail-desc">${esc(det.s)}</div></div>`;
+  }
+  if (det.d && det.d.length) {
+    body += `<div class="detail-section"><div class="detail-label">Description</div><div class="detail-desc"><ul>${det.d.map(d=>`<li>${descHtml(d)}</li>`).join('')}</ul></div></div>`;
+  }
+  if (det.c) {
+    body += `<div class="detail-section"><div class="detail-label">Conditions of Acceptance</div><div class="detail-coa">${esc(det.c)}</div></div>`;
+  }
+  if (!det.d?.length && !det.c) {
+    body += `<div class="detail-section"><div class="detail-desc" style="color:var(--ink-light);font-style:italic;">No detail data available.</div></div>`;
+  }
+
+  rp.innerHTML = `
+    <div class="detail-head">
+      <div class="detail-head-top">
+        <span class="detail-pbi-id">PBI-${p.id}</span>
+        <span class="detail-pbi-sp">${p.sp} SP</span>
+        <span class="detail-sprint-tag">${esc(sprint)}</span>
+        <div class="detail-toolbar">
+          <button class="detail-edit-btn" onclick="toggleEdit()" title="Edit">&#9998;</button>
+          <button class="detail-edit-btn" onclick="duplicatePbi(${p.id})" title="Duplicate">&#10064;</button>
+          <button class="detail-close-btn" onclick="closeDetail()" title="Close">&times;</button>
+        </div>
+      </div>
+      <div class="detail-title">${esc(p.summary)} <button class="detail-move-btn" onclick="showMoveMenu(event,${p.id},${findSprintIndex(p.id)})" title="Move to...">&#8674;</button></div>
+      <div class="detail-nav">
+        <button class="detail-nav-btn" onclick="navPbi(-1)" ${idx<=0?'disabled':''}>&larr; Prev</button>
+        <button class="detail-nav-btn" onclick="navPbi(1)" ${idx>=allIds.length-1?'disabled':''}>Next &rarr;</button>
+      </div>
+    </div>
+    <div class="detail-scroll">${body}</div>`;
+}
+
+function saveEdit() {
+  const summary = document.getElementById('editSummary').value.trim();
+  const summ = document.getElementById('editSumm').value.trim();
+  const sp = Math.max(0, parseInt(document.getElementById('editSp').value, 10) || 0);
+  const descRaw = document.getElementById('editDesc').value.trim();
+  const coa = document.getElementById('editCoa').value.trim();
+
+  const descLines = descRaw ? descRaw.split('\n').filter(l => l.trim()).map(l =>
+    l.trim().replace(/`([^`]+)`/g, '<code>$1</code>')
+  ) : [];
+
+  const newGroupIdx = parseInt(document.getElementById('editGroup').value);
+  const curGroupIdx = findSprintIndex(selectedId);
+  if (newGroupIdx !== curGroupIdx) {
+    if (curGroupIdx >= 0) state[curGroupIdx].pbiIds = state[curGroupIdx].pbiIds.filter(id => id !== selectedId);
+    if (newGroupIdx >= 0 && newGroupIdx < state.length) state[newGroupIdx].pbiIds.push(selectedId);
+  }
+
+  edits[selectedId] = { summary, summ, sp, desc: descLines, coa };
+  saveEdits(); saveData();
+  editing = false;
+  renderList();
+  renderDetail();
+  updateSaveIndicator(false);
+  showToast('PBI updated');
+}
+
+function navPbi(dir) {
+  const ids = getAllIds();
+  const i = ids.indexOf(selectedId) + dir;
+  if (i >= 0 && i < ids.length) {
+    selectedId = ids[i];
+    editing = false;
+    document.querySelectorAll('.pbi-row').forEach(r => r.classList.toggle('selected', +r.dataset.pid === selectedId));
+    const row = document.querySelector(`.pbi-row[data-pid="${selectedId}"]`);
+    if (row) row.scrollIntoView({ block: 'nearest' });
+    updateShell();
+    renderDetail();
+  }
+}
+
+// ── Drag & drop ──
+function dStart(e, pid, si) {
+  didDrag = true; draggedPbiId = pid; draggedFromSprint = si;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', pid);
+}
+function dEnd(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.pbi-list').forEach(l => l.classList.remove('drag-over'));
+  draggedPbiId = null; draggedFromSprint = null;
+  setTimeout(() => { didDrag = false; }, 50);
+}
+function dHeaderOver(e) {
+  if (draggedPbiId === null) return;
+  e.preventDefault();
+  const grp = e.currentTarget.closest('.sprint-group');
+  if (grp && grp.classList.contains('collapsed')) grp.classList.remove('collapsed');
+}
+function dDropHeader(e, tsi) {
+  e.preventDefault(); e.stopPropagation();
+  const pid = draggedPbiId; if (pid === null) return;
+  if (draggedFromSprint >= 0) state[draggedFromSprint].pbiIds = state[draggedFromSprint].pbiIds.filter(id => id !== pid);
+  if (tsi >= 0) {
+    state[tsi].pbiIds = state[tsi].pbiIds.filter(id => id !== pid);
+    state[tsi].pbiIds.push(pid);
+  }
+  renderList(); renderDetail(); updateSaveIndicator(false);
+}
+function dOver(e, si) { e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
+function dLeave(e) { const l=e.currentTarget; if(!l.contains(e.relatedTarget)) l.classList.remove('drag-over'); }
+function dItemOver(e) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect='move'; e.currentTarget.closest('.pbi-list').classList.add('drag-over'); }
+
+function dDrop(e, tsi) {
+  e.preventDefault();
+  const pid = draggedPbiId; if(pid===null) return;
+  if (draggedFromSprint >= 0) state[draggedFromSprint].pbiIds = state[draggedFromSprint].pbiIds.filter(id=>id!==pid);
+  if (tsi >= 0) {
+    const ts = state[tsi];
+    const items = [...e.currentTarget.querySelectorAll('.pbi-row:not(.dragging)')];
+    let ins = items.length;
+    for (let i=0;i<items.length;i++) {
+      const r = items[i].getBoundingClientRect();
+      if (e.clientY < r.top + r.height/2) { ins=i; break; }
+    }
+    ts.pbiIds = ts.pbiIds.filter(id=>id!==pid);
+    ts.pbiIds.splice(ins, 0, pid);
+  }
+  renderList(); renderDetail(); updateSaveIndicator(false);
+}
+
+function rmPbi(e, si, pi) {
+  e.stopPropagation();
+  state[si].pbiIds.splice(pi, 1);
+  renderList(); renderDetail(); updateSaveIndicator(false);
+}
+
+function showMoveMenu(e, pid, fromSi) {
+  e.stopPropagation();
+  closeMoveMenu();
+  const menu = document.createElement('div');
+  menu.className = 'move-menu';
+  menu.id = 'moveMenu';
+  state.forEach((sp, si) => {
+    const btn = document.createElement('button');
+    btn.className = 'move-menu-item' + (si === fromSi ? ' disabled' : '');
+    btn.textContent = sp.name;
+    btn.onclick = () => { movePbiTo(pid, fromSi, si); closeMoveMenu(); };
+    menu.appendChild(btn);
+  });
+  // Unassigned option
+  if (fromSi >= 0) {
+    const btn = document.createElement('button');
+    btn.className = 'move-menu-item';
+    btn.textContent = 'Unassigned';
+    btn.onclick = () => { movePbiTo(pid, fromSi, -1); closeMoveMenu(); };
+    menu.appendChild(btn);
+  }
+  document.body.appendChild(menu);
+  const rect = e.target.getBoundingClientRect();
+  menu.style.top = Math.min(rect.bottom + 2, window.innerHeight - menu.offsetHeight - 8) + 'px';
+  menu.style.left = Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8) + 'px';
+  setTimeout(() => document.addEventListener('click', closeMoveMenu, { once: true }), 0);
+}
+
+function closeMoveMenu() {
+  const m = document.getElementById('moveMenu');
+  if (m) m.remove();
+}
+
+function movePbiTo(pid, fromSi, toSi) {
+  if (fromSi >= 0) state[fromSi].pbiIds = state[fromSi].pbiIds.filter(id => id !== pid);
+  if (toSi >= 0) {
+    state[toSi].pbiIds = state[toSi].pbiIds.filter(id => id !== pid);
+    state[toSi].pbiIds.push(pid);
+  }
+  renderList(); renderDetail(); updateSaveIndicator(false);
+}
+
+// ── Version ──
+// Document version = export moment, formatted as "yyyy-mm-dd HH:mm".
+function getVersionStamp() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+// Filename-safe form: "2026-07-01 13:10" → "2026-07-01_1310".
+function versionForFilename(v) {
+  return v.replace(' ', '_').replace(':', '');
+}
+function updateVersionDisplay() {
+  const base = 'Drag to reorder &middot; Click to view detail';
+  document.querySelectorAll('.header-sub').forEach(el => {
+    el.innerHTML = base + (currentVersion ? ' &middot; v' + esc(currentVersion) : '');
+  });
+}
+function setVersion(v) {
+  currentVersion = v || null;
+  if (currentVersion) localStorage.setItem(VERSION_KEY, currentVersion);
+  else localStorage.removeItem(VERSION_KEY);
+  updateVersionDisplay();
+}
+function loadVersion() {
+  const saved = localStorage.getItem(VERSION_KEY);
+  currentVersion = saved || null/*VERSION_DATA*/;
+  updateVersionDisplay();
+}
+
+// ── Export ──
+function buildPbiBlock(id) {
+  const p = getEditedPbi(id);
+  const det = getEditedDet(id);
+  if (!p) return '';
+  const summ = det?.s || '';
+  const desc = det?.d || [];
+  const coa = det?.c || '';
+  let md = `## 🔷 PBI-${id}: ${p.summary}\n\n`;
+  if (summ) md += `**Summary:** ${summ}\n\n`;
+  if (desc.length) {
+    md += `**Description:**\n`;
+    desc.forEach(line => { md += `- ${line.replace(/<code>([^<]+)<\/code>/g, '`$1`')}\n`; });
+    md += '\n';
+  }
+  md += `**CoA:**\n\`\`\`\n${coa || '(none)'}\n\`\`\`\n\n`;
+  md += `**SP: ${p.sp}**\n\n`;
+  md += `---\n\n`;
+  return md;
+}
+
+function buildFullMarkdown(version) {
+  const title = document.getElementById('boardTitle').textContent || 'PBI Board';
+  let md = `# ${title}\n\n`;
+  if (version) md += `**Version:** ${version}\n\n`;
+  const totalSp = PBIS.reduce((s, p) => s + (getEditedPbi(p.id)?.sp || 0), 0);
+  md += `**Total PBIs:** ${PBIS.length} | **Total SP:** ${totalSp}\n\n---\n\n`;
+
+  // PBI details grouped by sprint
+  state.forEach(sp => {
+    md += `## ${sp.name}${sp.focus ? ' — ' + sp.focus : ''}\n\n`;
+    sp.pbiIds.forEach(id => {
+      if (!getEditedPbi(id)) return;
+      md += buildPbiBlock(id);
+    });
+  });
+
+  // Unassigned
+  const assigned = new Set(state.flatMap(s => s.pbiIds));
+  const unas = PBIS.filter(p => !assigned.has(p.id));
+  if (unas.length) {
+    md += `## Unassigned\n\n`;
+    unas.forEach(p => { md += buildPbiBlock(p.id); });
+  }
+
+  // Sprint summary table
+  md += `---\n\n## Sprint Plan\n\n| Sprint | PBIs | Total SP | Focus |\n|--------|------|----------|-------|\n`;
+  state.forEach(sp => {
+    const pts = sp.pbiIds.reduce((s, id) => s + (getEditedPbi(id)?.sp || 0), 0);
+    md += `| ${sp.name} | ${sp.pbiIds.map(id => 'PBI-' + id).join(', ')} | ${pts} | ${sp.focus || '—'} |\n`;
+  });
+  if (unas.length) {
+    const usp = unas.reduce((s, p) => s + (getEditedPbi(p.id)?.sp || 0), 0);
+    md += `| Unassigned | ${unas.map(p => 'PBI-' + p.id).join(', ')} | ${usp} | — |\n`;
+  }
+  return md;
+}
+
+function exportMarkdown() {
+  let md = "## Sprint Plan\n\n| Sprint | PBIs | Total SP | Focus |\n|--------|------|----------|-------|\n";
+  state.forEach(sp => {
+    const pts = sp.pbiIds.reduce((s,id)=>s+(getEditedPbi(id)?.sp||0),0);
+    md += `| ${sp.name} | ${sp.pbiIds.map(id=>'PBI-'+id).join(', ')} | ${pts} | ${sp.focus || '—'} |\n`;
+  });
+  const assigned = new Set(state.flatMap(s=>s.pbiIds));
+  const unas = PBIS.filter(p=>!assigned.has(p.id));
+  if(unas.length) {
+    const usp = unas.reduce((s,p)=>s+(getEditedPbi(p.id)?.sp||0),0);
+    md += `| Unassigned | ${unas.map(p=>'PBI-'+p.id).join(', ')} | ${usp} | — |\n`;
+  }
+  document.getElementById("exportText").value = md;
+  document.getElementById("exportOverlay").classList.add("show");
+}
+function closeExport() { document.getElementById("exportOverlay").classList.remove("show"); }
+function copyExport() {
+  const ta = document.getElementById("exportText");
+  const text = ta.value;
+  const done = () => { showToast("Copied"); closeExport(); };
+  const fallback = () => { ta.select(); try { document.execCommand('copy'); } catch (e) {} done(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } else {
+    fallback();
+  }
+}
+
+// ── Dropdown menus ──
+function toggleMenu(id) {
+  const el = document.getElementById(id);
+  const wasOpen = el.classList.contains('open');
+  closeMenus();
+  if (!wasOpen) el.classList.add('open');
+}
+function closeMenus() {
+  document.querySelectorAll('.menu-parent.open').forEach(m => m.classList.remove('open'));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.menu-parent')) closeMenus();
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const openModals = document.querySelectorAll('.modal-overlay.show');
+  const openMenu = document.querySelector('.menu-parent.open') || document.getElementById('moveMenu');
+  if (openModals.length || openMenu) {
+    closeMenus();
+    closeMoveMenu();
+    openModals.forEach(m => m.classList.remove('show'));
+    // Stop the navigation handler below from also closing the detail pane.
+    e.stopImmediatePropagation();
+  }
+});
+
+// ── Sprint Plan Import ──
+let sprintImportParsed = null;
+function openSprintImport() {
+  document.getElementById('sprintImportPreview').innerHTML = '';
+  document.getElementById('sprintImportApplyBtn').disabled = true;
+  const el = document.getElementById('sprintImportText');
+  if (state.length && PBIS.length) {
+    let md = '| Sprint | PBIs | Total SP | Focus |\n|--------|------|----------|-------|\n';
+    state.forEach(sp => {
+      const pts = sp.pbiIds.reduce((s,id)=>s+(getEditedPbi(id)?.sp||0),0);
+      md += `| ${sp.name} | ${sp.pbiIds.map(id=>'PBI-'+id).join(', ')} | ${pts} | ${sp.focus || '—'} |\n`;
+    });
+    const assigned = new Set(state.flatMap(s=>s.pbiIds));
+    const unas = PBIS.filter(p=>!assigned.has(p.id));
+    if (unas.length) {
+      const usp = unas.reduce((s,p)=>s+(getEditedPbi(p.id)?.sp||0),0);
+      md += `| Unassigned | ${unas.map(p=>'PBI-'+p.id).join(', ')} | ${usp} | — |\n`;
+    }
+    el.value = md;
+  } else {
+    el.value = '';
+  }
+  document.getElementById('sprintImportOverlay').classList.add('show');
+}
+function closeSprintImport() { document.getElementById('sprintImportOverlay').classList.remove('show'); }
+function previewSprintImport() {
+  const text = document.getElementById('sprintImportText').value;
+  if (!text.trim()) { showToast('Paste sprint plan first'); return; }
+  const result = parseReorder(text);
+  if (!result || !result.length) {
+    document.getElementById('sprintImportPreview').innerHTML = '<div style="color:#B91C1C;">No sprint data found. Expected format:<br><code>| Sprint 1 | PBI-1, PBI-3 | 12 | Focus |</code><br>or <code>Sprint-1: PBI-1, PBI-3</code></div>';
+    document.getElementById('sprintImportApplyBtn').disabled = true;
+    return;
+  }
+  sprintImportParsed = result;
+  let html = `<strong>Found ${result.length} sprints:</strong><br>`;
+  result.forEach(s => {
+    html += `&nbsp;&nbsp;${esc(s.name)}: ${s.pbiIds.map(id => 'PBI-' + id).join(', ')} (${esc(s.focus || '—')})<br>`;
+  });
+  document.getElementById('sprintImportPreview').innerHTML = html;
+  document.getElementById('sprintImportApplyBtn').disabled = false;
+}
+function applySprintImport() {
+  if (!sprintImportParsed) return;
+  const allMentioned = new Set(sprintImportParsed.flatMap(s => s.pbiIds));
+  sprintImportParsed.forEach(imp => {
+    let grp = state.find(s => s.name === imp.name);
+    if (!grp) { grp = { name: imp.name, focus: imp.focus, pbiIds: [] }; state.push(grp); }
+    else { if (imp.focus) grp.focus = imp.focus; }
+    imp.pbiIds.forEach(id => {
+      state.forEach(s => { s.pbiIds = s.pbiIds.filter(x => x !== id); });
+      grp.pbiIds.push(id);
+    });
+  });
+  closeSprintImport();
+  renderList(); updateSaveIndicator(false);
+  showToast('Sprint plan imported');
+}
+
+// ── Export plain text ──
+function exportPlainText() {
+  if (!PBIS.length) { showToast('No data to export'); return; }
+  const version = getVersionStamp();
+  setVersion(version);
+  const title = document.getElementById('boardTitle').textContent || 'PBI Board';
+  let txt = title + '\n' + '='.repeat(title.length) + '\n\n';
+  txt += `Version: ${version}\n`;
+  const totalSp = PBIS.reduce((s, p) => s + (getEditedPbi(p.id)?.sp || 0), 0);
+  txt += `Total PBIs: ${PBIS.length} | Total SP: ${totalSp}\n\n`;
+  state.forEach(sp => {
+    txt += sp.name + (sp.focus ? ' — ' + sp.focus : '') + '\n' + '-'.repeat(40) + '\n';
+    sp.pbiIds.forEach(id => {
+      const p = getEditedPbi(id);
+      const det = getEditedDet(id);
+      if (!p) return;
+      txt += `  PBI-${p.id}: ${p.summary} (${p.sp} SP)\n`;
+      if (det.s) txt += `    Summary: ${det.s}\n`;
+      if (det.d && det.d.length) {
+        txt += '    Description:\n';
+        det.d.forEach(d => txt += `      - ${d.replace(/<\/?code>/g, '').replace(/&amp;/g, '&')}\n`);
+      }
+      if (det.c) {
+        txt += '    CoA:\n';
+        det.c.split('\n').forEach(l => txt += `      ${l}\n`);
+      }
+      txt += '\n  ========================\n\n';
+    });
+    txt += '\n';
+  });
+  const assigned = new Set(state.flatMap(s => s.pbiIds));
+  const unas = PBIS.filter(p => !assigned.has(p.id));
+  if (unas.length) {
+    txt += 'Unassigned\n' + '-'.repeat(40) + '\n';
+    unas.forEach(p => {
+      const ep = getEditedPbi(p.id);
+      txt += `  PBI-${ep.id}: ${ep.summary} (${ep.sp} SP)\n`;
+    });
+    txt += '\n';
+  }
+  txt += 'Sprint Plan\n' + '-'.repeat(40) + '\n';
+  state.forEach(sp => {
+    const pts = sp.pbiIds.reduce((s, id) => s + (getEditedPbi(id)?.sp || 0), 0);
+    txt += `  ${sp.name}: ${sp.pbiIds.map(id => 'PBI-' + id).join(', ')} (${pts} SP) [${sp.focus || '—'}]\n`;
+  });
+  const blob = new Blob([txt], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const fname = (title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '') || 'pbi-board') + (versionEnabled ? '-' + versionForFilename(version) : '') + '.txt';
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadFullMd() {
+  const version = getVersionStamp();
+  setVersion(version);
+  const md = buildFullMarkdown(version);
+  const title = (document.getElementById('boardTitle').textContent || 'pbi-board').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+  const filename = title + (versionEnabled ? '-' + versionForFilename(version) : '') + '.md';
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function exportFullBoard() {
+  if (!PBIS.length) { showToast('No data to export'); return; }
+  const exportPbis = PBIS.map(p => {
+    const e = edits[p.id];
+    return e ? { id: p.id, summary: e.summary ?? p.summary, sp: e.sp ?? p.sp } : { ...p };
+  });
+  const exportDet = {};
+  PBIS.forEach(p => { exportDet[p.id] = getEditedDet(p.id); });
+  const exportState = JSON.parse(JSON.stringify(state));
+  const titleText = document.getElementById('boardTitle').textContent || 'PBI Board';
+  const version = getVersionStamp();
+  setVersion(version);
+  // Reconstruct the page source with data injected
+  const css = document.getElementById('app-style').textContent;
+  let js = document.getElementById('app-script').textContent;
+  // Safe JSON for embedding in a script tag: escape the left angle bracket so a
+  // value containing a closing script tag cannot terminate it; use a replacer
+  // function so a dollar sign in the data is not treated as a regex back-reference.
+  const safeJson = (o) => JSON.stringify(o).replace(/</g, '\\u003c');
+  js = js.replace('[/*PBIS_DATA*/]', () => safeJson(exportPbis));
+  js = js.replace('{/*DET_DATA*/}', () => safeJson(exportDet));
+  js = js.replace('[]/*STATE_DATA*/', () => safeJson(exportState));
+  js = js.replace('null/*VERSION_DATA*/', () => safeJson(version));
+  const bodyHtml = `
+<div class="header"><div><div style="display:flex;align-items:center;gap:6px;"><h1 id="boardTitle" ondblclick="editTitle()">${esc(titleText)}</h1><button class="title-edit-icon" onclick="editTitle()" title="Edit title">&#9998;</button></div><div class="header-sub">Drag to reorder &middot; Click to view detail${version ? ' &middot; v' + esc(version) : ''}</div></div><div class="header-actions"><span class="save-indicator" id="saveIndicator"></span><button class="btn btn-ghost" onclick="addGroup()">+ Group</button><button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button><button class="btn btn-ghost" onclick="openSprintImport()">Import / Export Sprint Plan</button><div class="menu-parent" id="menuBoard"><button class="btn btn-ghost" onclick="toggleMenu('menuBoard')">Import / Export Full Board &#9662;</button><div class="menu-drop"><button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button><button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button><button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button><button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export Full Board with embedded data</button></div></div><button class="btn btn-ghost" onclick="resetOrder()">Reset</button><button class="btn btn-save" onclick="saveOrder()">Save into Browser</button><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label></div></div>
+<div class="shell"><div class="left-pane" id="leftPane"><div class="stats-bar" id="statsBar"></div><div class="list-scroll" id="listScroll"></div></div><div class="resize-handle" id="resizeHandle"></div><div class="right-pane" id="rightPane"></div></div>
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="exportOverlay" onclick="if(event.target===this)closeExport()"><div class="modal"><h2>Export Sprint Plan</h2><div class="modal-body"><textarea id="exportText" readonly></textarea></div><div class="modal-actions"><button class="btn-modal" onclick="closeExport()">Close</button><button class="btn-modal btn-modal-primary" onclick="copyExport()">Copy</button></div></div></div>
+<div class="modal-overlay" id="importOverlay" onclick="if(event.target===this)closeImport()"><div class="modal" style="max-width:780px;"><h2>Import .md raw</h2><div class="modal-body"><p class="import-hint">Drag &amp; drop a <code>.md</code> file, paste markdown content.</p><div id="dropZone" class="drop-zone" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)"><span class="drop-icon">&#128203;</span><span>Drop <code>.md</code> file here</span><button class="btn-modal" onclick="event.stopPropagation();document.getElementById('browseFile').click()" style="margin-top:8px;font-size:13px;padding:6px 16px;">Browse file...</button><input type="file" id="browseFile" accept=".md,.txt" style="display:none" onchange="browseFileSelected(this)"></div><textarea id="importText" placeholder="Paste .md content here..."></textarea><div id="importPreview"></div></div><div class="modal-actions"><button class="btn-modal" onclick="closeImport()">Cancel</button><button class="btn-modal" onclick="previewImport()">Preview</button><button class="btn-modal btn-modal-primary" id="importConfirmBtn" onclick="confirmImport()" disabled>Apply</button></div></div></div>
+<div class="modal-overlay" id="sprintImportOverlay" onclick="if(event.target===this)closeSprintImport()"><div class="modal" style="max-width:680px;"><h2>Import / Export Sprint Plan</h2><div class="modal-body"><p class="import-hint">Edit the sprint table or paste shorthand to reorder PBIs across sprints.</p><textarea id="sprintImportText" placeholder="Paste sprint reorder:&#10;| Sprint 1 | PBI-1, PBI-3 | 12 | Focus |&#10;or Sprint-1: PBI-1, PBI-3, PBI-5"></textarea><div id="sprintImportPreview" style="margin:10px 0;font-size:13px;color:var(--ink-mid);"></div></div><div class="modal-actions"><button class="btn-modal" onclick="closeSprintImport()">Cancel</button><button class="btn-modal" onclick="previewSprintImport()">Preview</button><button class="btn-modal btn-modal-primary" id="sprintImportApplyBtn" onclick="applySprintImport()" disabled>Apply</button></div></div></div>
+`;
+  const safeVersionComment = String(version).replace(/--+/g, '-').replace(/[<>]/g, '');
+  const html = '<!-- Version: ' + safeVersionComment + ' -->\n<title>' + esc(titleText) + '</title>\n<style id="app-style">' + css + '</style>' + bodyHtml + '<script id="app-script">' + js + '</' + 'script>';
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const fname = titleText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '') + '-board' + (versionEnabled ? '-' + versionForFilename(version) : '') + '.html';
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Import ──
+let parsedImport = null;
+
+function dzOver(e) { e.preventDefault(); e.dataTransfer.dropEffect='copy'; document.getElementById('dropZone').classList.add('drag-over'); }
+function dzLeave(e) { document.getElementById('dropZone').classList.remove('drag-over'); }
+function dzDrop(e) {
+  e.preventDefault(); dzLeave(e);
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { document.getElementById('importText').value = reader.result; previewImport(); };
+  reader.readAsText(file);
+}
+function browseFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { document.getElementById('importText').value = reader.result; previewImport(); };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function parsePbiIds(str) {
+  const ids = [];
+  const parts = str.split(',');
+  let lastPrefix = false;
+  for (const part of parts) {
+    const trimmed = part.trim();
+    const full = trimmed.match(/PBI-(\d+)/i);
+    if (full) { ids.push(parseInt(full[1])); lastPrefix = true; continue; }
+    if (lastPrefix) {
+      const bare = trimmed.match(/^(\d+)$/);
+      if (bare) { ids.push(parseInt(bare[1])); continue; }
+    }
+    lastPrefix = false;
+  }
+  return ids;
+}
+
+function parseReorder(text) {
+  const sprints = [];
+  // Table format: | <name> | PBI-1, 5, 10 | 12 | Focus | optional col |
+  // Name can be anything; the numeric Total-SP column filters header/separator rows.
+  const tableRe = /\|\s*([^|]+?)\s*\|\s*([^|]+)\|\s*\d+\s*\|\s*([^|]*)\|[^\n]*/g;
+  let m;
+  while ((m = tableRe.exec(text)) !== null) {
+    const name = m[1].trim();
+    if (!name || /^Unassigned$/i.test(name)) continue;
+    const pbiIds = parsePbiIds(m[2]);
+    if (pbiIds.length) sprints.push({ name, focus: m[3].trim(), pbiIds });
+  }
+  if (sprints.length) return sprints;
+
+  // Shorthand: Sprint-1:PBI-1, 3, 4 (one per line or space-separated)
+  const shortRe = /Sprint[- ]?(\d+)\s*:\s*(.+)/gi;
+  while ((m = shortRe.exec(text)) !== null) {
+    const pbiIds = parsePbiIds(m[2]);
+    if (pbiIds.length) sprints.push({ name: `Sprint ${m[1]}`, focus: '', pbiIds });
+  }
+  return sprints.length ? sprints : null;
+}
+
+function openImport() {
+  document.getElementById('importText').value = '';
+  document.getElementById('importPreview').innerHTML = '';
+  document.getElementById('importConfirmBtn').disabled = true;
+  parsedImport = null;
+  document.getElementById('importOverlay').classList.add('show');
+}
+function closeImport() {
+  document.getElementById('importOverlay').classList.remove('show');
+  parsedImport = null;
+}
+
+function parseMd(md) {
+  const pbis = [];
+  const sprints = [];
+  let title = null;
+  const titleMatch = md.match(/^#\s+(.+?)$/m);
+  if (titleMatch && !titleMatch[1].match(/^(?:🔷\s*)?PBI-/)) title = titleMatch[1].trim();
+
+  // Optional document version line: **Version:** yyyy-mm-dd HH:mm
+  const versionMatch = md.match(/^\*\*Version:\*\*\s*(.+?)\s*$/m);
+  const version = versionMatch ? versionMatch[1].trim() : null;
+
+  // Parse PBI blocks: ## 🔷 PBI-N: ...
+  const pbiRe = /##\s*(?:🔷\s*)?PBI-(\d+):\s*(.+?)(?:\n|$)/g;
+  let m;
+  const pbiStarts = [];
+  while ((m = pbiRe.exec(md)) !== null) {
+    pbiStarts.push({ id: parseInt(m[1]), summary: m[2].trim(), idx: m.index });
+  }
+
+  for (let i = 0; i < pbiStarts.length; i++) {
+    const start = pbiStarts[i].idx;
+    const end = i + 1 < pbiStarts.length ? pbiStarts[i+1].idx : md.length;
+    const block = md.substring(start, end);
+
+    // Summary
+    const summM = block.match(/\*\*Summary:\*\*\s*(.+)/);
+    const summ = summM ? summM[1].trim() : '';
+
+    // SP
+    const spM = block.match(/\*\*SP:\s*(\d+)\*\*/);
+    const sp = spM ? parseInt(spM[1]) : 0;
+
+    // Description: lines between **Description:** and **CoA:** or end
+    const descLines = [];
+    const descM = block.match(/\*\*Description:\*\*\s*\n([\s\S]*?)(?=\*\*CoA:\*\*|\*\*SP:|\n---|\n##|$)/);
+    if (descM) {
+      descM[1].split('\n').forEach(line => {
+        const t = line.replace(/^[\s-]*/, '').trim();
+        if (t) descLines.push(t.replace(/`([^`]+)`/g, '<code>$1</code>'));
+      });
+    }
+
+    // CoA: text inside ``` block after **CoA:**
+    let coa = '';
+    const coaM = block.match(/\*\*CoA:\*\*\s*\n```[^\n]*\n([\s\S]*?)```/);
+    if (coaM) {
+      coa = coaM[1].trim();
+    }
+
+    pbis.push({ id: pbiStarts[i].id, summary: pbiStarts[i].summary, summ, sp, desc: descLines, coa });
+  }
+
+  // Parse sprint table. Group name can be anything (e.g. "Sprint 1", "Backlog");
+  // the numeric Total-SP column filters out header/separator rows and "Unassigned"
+  // is skipped (computed bucket). Scope the scan to the "Sprint Plan" section when
+  // present so a table-like row inside a PBI's description/CoA can't be misparsed.
+  const planIdx = md.search(/^#+\s*Sprint Plan\b/im);
+  const tableScope = planIdx >= 0 ? md.slice(planIdx) : md;
+  const tableRe = /\|\s*([^|]+?)\s*\|\s*([^|]+)\|\s*(\d+)\s*\|\s*([^|]*)\|[^\n]*/g;
+  while ((m = tableRe.exec(tableScope)) !== null) {
+    const name = m[1].trim();
+    if (!name || /^Unassigned$/i.test(name)) continue;
+    const pbiIds = parsePbiIds(m[2]);
+    sprints.push({
+      name,
+      focus: m[4].trim().replace(/\|/g, '').trim(),
+      pbiIds
+    });
+  }
+
+  return { pbis, sprints, title, version };
+}
+
+function previewImport() {
+  const md = document.getElementById('importText').value;
+  if (!md.trim()) { showToast('Paste markdown content first'); return; }
+
+  parsedImport = parseMd(md);
+  let { pbis, sprints } = parsedImport;
+
+  // If no PBIs found, try reorder-only parse
+  if (!pbis.length) {
+    const reorder = parseReorder(md);
+    if (reorder) {
+      parsedImport = { pbis: [], sprints: reorder, reorderOnly: true };
+      sprints = reorder;
+    }
+  }
+
+  if (!pbis.length && !sprints.length) {
+    document.getElementById('importPreview').innerHTML = `<div class="import-preview">
+      <strong style="color:var(--danger);">No PBI found in this file.</strong><br><br>
+      The file format must follow this structure:<br>
+      <code># Board Title</code><br><br>
+      <code>## PBI-1: PBI title here</code><br>
+      <code>**Summary:** Short summary</code><br>
+      <code>**SP:** 5</code><br>
+      <code>**Description:**</code><br>
+      <code>- Description item 1</code><br>
+      <code>- Description item 2</code><br>
+      <code>**CoA:**</code><br>
+      <code>Acceptance criteria here</code><br><br>
+      Each PBI must start with <code>## PBI-{number}:</code>
+    </div>`;
+    document.getElementById('importConfirmBtn').disabled = true;
+    return;
+  }
+
+  const existingIds = new Set(PBIS.map(p => p.id));
+  const newIds = pbis.filter(p => !existingIds.has(p.id));
+  const updatedIds = pbis.filter(p => existingIds.has(p.id));
+
+  const totalSp = pbis.reduce((s, p) => s + (p.sp || 0), 0);
+  let html = '<div class="import-preview">';
+
+  html += `<strong>Parsed:</strong> ${pbis.length} PBIs, ${totalSp} SP, ${sprints.length} sprints<br>`;
+  if (parsedImport.reorderOnly) {
+    html += `<span class="import-warn">Reorder mode — only sprint assignments will change</span><br>`;
+  } else {
+    if (updatedIds.length) html += `<span class="import-ok">Update ${updatedIds.length} existing PBIs</span><br>`;
+    if (newIds.length) html += `<span class="import-new">+ ${newIds.length} new PBIs: ${newIds.map(p => 'PBI-' + p.id).join(', ')}</span><br>`;
+  }
+
+  if (sprints.length) {
+    html += `<span class="import-ok">Sprint assignments will be replaced</span><br>`;
+    sprints.forEach(s => {
+      html += `&nbsp;&nbsp;${esc(s.name)}: ${s.pbiIds.map(id => 'PBI-' + id).join(', ')} (${esc(s.focus || '—')})<br>`;
+    });
+  } else {
+    html += `<span class="import-warn">No sprint table found — only PBI content will update, order stays</span><br>`;
+  }
+
+  html += '</div>';
+  document.getElementById('importPreview').innerHTML = html;
+  document.getElementById('importConfirmBtn').disabled = pbis.length === 0 && !sprints.length;
+}
+
+function confirmImport() {
+  if (!parsedImport) return;
+  const { pbis, sprints, title, version } = parsedImport;
+
+  // Apply title from .md if present
+  if (title) {
+    document.getElementById('boardTitle').textContent = title;
+    localStorage.setItem(TITLE_KEY, title);
+  }
+
+  // Apply version from .md: load it if present; a full import without a version
+  // clears the previous one (reorder-only imports leave the version untouched).
+  if (version) setVersion(version);
+  else if (!parsedImport.reorderOnly) setVersion(null);
+
+  // Full import (not reorder-only): clear all old data first
+  if (!parsedImport.reorderOnly && pbis.length) {
+    PBIS.length = 0;
+    Object.keys(DET).forEach(k => delete DET[k]);
+    Object.keys(edits).forEach(k => delete edits[k]);
+    state.length = 0;
+  }
+
+  // Add PBIs
+  pbis.forEach(p => {
+    const existing = PBIS.find(b => b.id === p.id);
+    if (!existing) {
+      PBIS.push({ id: p.id, summary: p.summary, sp: p.sp });
+    }
+    DET[p.id] = { s: p.summ || '', d: p.desc || [], c: p.coa || '' };
+    edits[p.id] = {
+      summary: p.summary,
+      summ: p.summ || '',
+      sp: p.sp,
+      desc: p.desc,
+      coa: p.coa
+    };
+  });
+
+  // Update sprint assignments
+  if (sprints.length) {
+    if (parsedImport.reorderOnly) {
+      // Merge mode: only move mentioned PBIs, others stay in their current sprint
+      const movedIds = new Set(sprints.flatMap(s => s.pbiIds));
+      // Remove moved PBIs from their current sprints
+      state.forEach(s => { s.pbiIds = s.pbiIds.filter(id => !movedIds.has(id)); });
+      // Place them into target sprints (create sprint if needed)
+      sprints.forEach(src => {
+        let target = state.find(s => s.name === src.name);
+        if (!target) { target = { name: src.name, focus: src.focus, pbiIds: [] }; state.push(target); }
+        src.pbiIds.forEach(id => { if (!target.pbiIds.includes(id)) target.pbiIds.push(id); });
+        if (src.focus) target.focus = src.focus;
+      });
+    } else {
+      state = sprints.map(s => ({ name: s.name, focus: s.focus, pbiIds: [...s.pbiIds] }));
+    }
+  }
+
+  saveEdits(); saveData();
+  selectedId = null; editing = false;
+  updateShell(); renderList(); renderDetail();
+  updateSaveIndicator(false);
+  closeImport();
+  showToast(`Imported ${pbis.length} PBIs` + (sprints.length ? ` + ${sprints.length} sprints` : ''));
+}
+
+// ── Keyboard ──
+document.addEventListener('keydown', e => {
+  if (document.querySelector('.modal-overlay.show')) return;
+  if (editing) return;
+  if (e.key === 'Escape' && selectedId) { e.preventDefault(); closeDetail(); return; }
+  if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); navPbi(1); }
+  if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); navPbi(-1); }
+  if (e.key === 'e' && selectedId) { e.preventDefault(); toggleEdit(); }
+});
+
+// ── Resize handle ──
+(function() {
+  const handle = document.getElementById('resizeHandle');
+  const left = document.getElementById('leftPane');
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault(); startX = e.clientX; startW = left.offsetWidth;
+    handle.classList.add('active');
+    const move = ev => { const w = Math.max(260, Math.min(window.innerWidth*0.65, startW + ev.clientX - startX)); left.style.flex = `0 0 ${w}px`; window._customPaneWidth = w; };
+    const up = () => { handle.classList.remove('active'); window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+})();
+
+// ── Title edit ──
+function loadTitle() {
+  const saved = localStorage.getItem(TITLE_KEY);
+  const el = document.getElementById('boardTitle');
+  if (saved) { el.textContent = saved; }
+  else if (el.textContent.includes('/*TITLE_DATA*/')) { el.textContent = 'PBI Board'; }
+}
+function editTitle() {
+  const h1 = document.getElementById('boardTitle');
+  const current = h1.textContent;
+  const input = document.createElement('input');
+  input.className = 'title-edit'; input.value = current;
+  h1.replaceWith(input); input.focus(); input.select();
+  const commit = () => {
+    const val = input.value.trim() || current;
+    const newH1 = document.createElement('h1');
+    newH1.id = 'boardTitle'; newH1.textContent = val;
+    newH1.setAttribute('ondblclick', 'editTitle()');
+    input.replaceWith(newH1);
+    localStorage.setItem(TITLE_KEY, val);
+    document.title = val;
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = current; input.blur(); } });
+}
+
+// ── Add new PBI ──
+function duplicatePbi(id) {
+  const src = getEditedPbi(id);
+  const srcDet = getEditedDet(id);
+  if (!src) return;
+  const maxId = PBIS.reduce((mx, p) => Math.max(mx, p.id), 0);
+  const newId = maxId + 1;
+  PBIS.push({ id: newId, summary: src.summary + ' (copy)', sp: src.sp });
+  DET[newId] = { s: srcDet.s || '', d: [...(srcDet.d || [])], c: srcDet.c || '' };
+  const spIdx = findSprintIndex(id);
+  if (spIdx >= 0) {
+    const pos = state[spIdx].pbiIds.indexOf(id);
+    state[spIdx].pbiIds.splice(pos + 1, 0, newId);
+  }
+  saveData();
+  selectedId = newId; editing = true;
+  updateShell(); renderList(); renderDetail();
+  updateSaveIndicator(false);
+  showToast('PBI duplicated');
+}
+
+function addNewPbi() {
+  const maxId = PBIS.reduce((mx, p) => Math.max(mx, p.id), 0);
+  const newId = maxId + 1;
+  PBIS.push({ id: newId, summary: 'New PBI', sp: 0 });
+  DET[newId] = { s: '', d: [], c: '' };
+  saveData();
+  selectedId = newId; editing = true;
+  updateShell(); renderList(); renderDetail();
+  updateSaveIndicator(false);
+}
+
+function addGroup() {
+  const name = prompt('Group name (e.g. Sprint 12, Design, Backend):');
+  if (!name || !name.trim()) return;
+  const formatted = name.trim().replace(/\s+/g, '-');
+  const exists = state.find(s => s.name.toLowerCase() === formatted.toLowerCase());
+  if (exists) { showToast('Group already exists'); return; }
+  state.push({ name: formatted, focus: '', pbiIds: [] });
+  renderList();
+  updateSaveIndicator(false);
+  showToast('Added: ' + name.trim());
+}
+
+function renameGroup(si) {
+  const old = state[si].name;
+  const name = prompt('Rename group:', old);
+  if (!name || !name.trim() || name.trim() === old) return;
+  state[si].name = name.trim().replace(/\s+/g, '-');
+  renderList(); updateSaveIndicator(false);
+}
+
+function deleteGroup(si) {
+  const grp = state[si];
+  if (!confirm(`Delete "${grp.name}"? Its ${grp.pbiIds.length} PBI(s) will move to Unassigned.`)) return;
+  state.splice(si, 1);
+  renderList(); updateSaveIndicator(false);
+  showToast('Deleted: ' + grp.name);
+}
+
+// ── Welcome screen ──
+function showWelcome() {
+  document.getElementById('listScroll').innerHTML = `
+    <div id="welcomeDrop" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--ink-light);text-align:center;padding:40px 20px;border:3px dashed var(--border);margin:16px;border-radius:12px;transition:all .15s;"
+      ondragover="event.preventDefault();event.dataTransfer.dropEffect='copy';this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'"
+      ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
+      ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='';welcomeFileDrop(event)">
+      <div style="font-size:48px;margin-bottom:16px;">📋</div>
+      <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px;">No data loaded</div>
+      <div style="font-size:13px;margin-bottom:20px;line-height:1.5;">Drop a <code>.md</code> file here to get started,<br>or click the button below.</div>
+      <button class="btn btn-save" onclick="document.getElementById('welcomeBrowse').click()" style="font-size:13px;padding:8px 20px;">Import .md file</button>
+      <input type="file" id="welcomeBrowse" accept=".md,.txt" style="display:none" onchange="welcomeBrowseSelected(this)">
+    </div>`;
+}
+function welcomeFileDrop(e) {
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    openImport();
+    document.getElementById('importText').value = reader.result;
+    previewImport();
+  };
+  reader.readAsText(file);
+}
+function welcomeBrowseSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    openImport();
+    document.getElementById('importText').value = reader.result;
+    previewImport();
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ── Init ──
+const savedAutoSave = localStorage.getItem('pbi-board-autosave');
+autoSaveEnabled = savedAutoSave !== '0';
+const _autoSaveCheck = document.getElementById('autoSaveCheck');
+if (_autoSaveCheck) _autoSaveCheck.checked = autoSaveEnabled;
+const savedVersionEnabled = localStorage.getItem('pbi-board-version-enabled');
+versionEnabled = savedVersionEnabled !== '0';
+const _versionCheck = document.getElementById('versionCheck');
+if (_versionCheck) _versionCheck.checked = versionEnabled;
+loadTitle();
+loadVersion();
+const hasData = loadData();
+if (hasData) {
+  updateSaveIndicator(!!localStorage.getItem(STORAGE_KEY));
+  renderList(); renderDetail();
+} else {
+  showWelcome();
+}
+</script>
