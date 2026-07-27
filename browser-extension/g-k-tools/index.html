@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G&amp;K Tools — Garoon · kintone · GitHub helpers</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e;
+    --border: #d0d7de; --panel: #f6f8fa; --accent: #0969da; --code-bg: #f6f8fa;
+    --red: #cf222e; --green: #1a7f37;
+    --kintone: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --garoon:  linear-gradient(135deg, #059669 0%, #0d9488 100%);
+    --tools:   linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    --hero:    linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --shadow:  0 10px 34px rgba(0,0,0,.09);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e;
+      --border: #30363d; --panel: #161b22; --accent: #58a6ff; --code-bg: #161b22;
+      --red: #f85149; --green: #3fb950; --shadow: 0 10px 34px rgba(0,0,0,.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg); line-height: 1.65;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+  /* the two Markdown tools are the headline act — they get more page to breathe in */
+  .band.flagship .wrap { max-width: 1320px; }
+
+  /* ---------- hero: words left, product shot right ---------- */
+  .hero { background: var(--hero); color: #fff; padding: 68px 28px 58px; }
+  .hero-in { max-width: 1120px; margin: 0 auto; }
+  .hero-row { display: grid; grid-template-columns: minmax(0,1fr) 330px; gap: 48px; align-items: center; }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
+            color: rgba(255,255,255,.75); margin: 0 0 12px; }
+  .brand { margin: 0; font-size: 72px; line-height: 1; letter-spacing: -.035em; font-weight: 800;
+           text-shadow: 0 2px 18px rgba(0,0,0,.18); }
+  /* version rides next to the name, aligned to the cap height rather than the baseline */
+  .ver { display: inline-block; vertical-align: 22px; margin-left: 14px;
+         font-size: 15px; font-weight: 700; letter-spacing: .04em;
+         padding: 5px 12px; border-radius: 999px; text-shadow: none;
+         background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.42); }
+  .tagline { margin: 14px 0 12px; font-size: 24px; line-height: 1.3; font-weight: 600; max-width: 560px; }
+  .hero .sub { margin: 0; font-size: 16.5px; color: rgba(255,255,255,.88); max-width: 560px; }
+  .badges { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .badges span { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3);
+                 border-radius: 999px; padding: 4px 13px; font-size: 12px; font-weight: 600; }
+  .hero-row .shot { box-shadow: 0 18px 44px rgba(0,0,0,.3); }
+
+  /* ---------- stat strip, floating over the hero edge ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+           gap: 14px; max-width: 1064px; margin: -30px auto 0; padding: 0 28px; position: relative; z-index: 2; }
+  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+          padding: 16px 18px; box-shadow: var(--shadow); }
+  .stat b { display: block; font-size: 21px; line-height: 1.25; }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+
+  /* ---------- alternating full-bleed bands give the page its rhythm ---------- */
+  .band { padding: 60px 0; }
+  .band.tint { background: var(--panel); border-top: 1px solid var(--border);
+               border-bottom: 1px solid var(--border); }
+
+  /* ---------- flagship: the Markdown pair, visibly the main event ---------- */
+  .band.flagship { padding: 74px 0 78px; position: relative;
+                   background: linear-gradient(180deg, rgba(217,119,6,.07), transparent 240px); }
+  .band.flagship::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px;
+                           background: var(--tools); }
+  .band.flagship.tint { background: var(--panel); }
+  .flag { display: flex; align-items: center; gap: 10px; margin: 0 auto 30px;
+          max-width: 1320px; padding: 0 28px; font-size: 12px; font-weight: 700;
+          letter-spacing: .16em; text-transform: uppercase; color: #b45309; }
+  .flag::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  @media (prefers-color-scheme: dark) { .flag { color: #f0a53a; } }
+  .band.flagship h2 { font-size: 40px; letter-spacing: -.028em; }
+  .band.flagship .pitch { font-size: 18px; }
+  .band.flagship li { margin: 9px 0; font-size: 15.5px; }
+  /* headline shots get most of the row and a stronger frame */
+  .row.big-media { grid-template-columns: minmax(0,0.68fr) minmax(0,1.32fr); gap: 40px; }
+  .row.flip.big-media { grid-template-columns: minmax(0,1.32fr) minmax(0,0.68fr); }
+  .row.big-media .col-media > .shot { border-color: rgba(180,83,9,.35);
+                                      box-shadow: 0 16px 44px rgba(0,0,0,.14); }
+  .row.big-media .shot-cap { font-size: 13.5px; }
+
+  /* ---------- the two-column feature row ---------- */
+  .row { display: grid; grid-template-columns: minmax(0,0.85fr) minmax(0,1.15fr);
+         gap: 46px; align-items: center; }
+  .row + .row { margin-top: 50px; }
+  .row.even { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .row.narrow-media { grid-template-columns: minmax(0,1.1fr) minmax(0,0.9fr); }
+  /* zig-zag: media moves to the left on every other row.
+     `order` only swaps which column each child lands in, so the widths have to
+     be mirrored too — otherwise a flipped shot inherits the narrow text column. */
+  .row.flip .col-text { order: 2; }
+  .row.flip .col-media { order: 1; }
+  .row.flip { grid-template-columns: minmax(0,1.15fr) minmax(0,0.85fr); }
+  .row.flip.narrow-media { grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr); }
+  .col-media > .shot { margin: 0; box-shadow: var(--shadow); }
+  .col-media .shot.sm { max-width: 320px; margin: 0 auto; }
+  .col-media .shot.menu { max-width: 100%; }
+
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .09em;
+         text-transform: uppercase; color: #fff; border-radius: 999px; padding: 4px 12px; margin-bottom: 14px; }
+  .tag.kintone { background: var(--kintone); }
+  .tag.garoon  { background: var(--garoon); }
+  .tag.tools   { background: var(--tools); }
+  h2 { font-size: 30px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 10px; }
+  h3 { font-size: 17px; margin: 0 0 6px; }
+  .pitch { font-size: 16.5px; margin: 0 0 8px; }
+  .sub2 { color: var(--muted); font-size: 14.5px; margin: 8px 0 0; }
+  .lead { max-width: 740px; }
+  ul { padding-left: 20px; margin: 12px 0 0; }
+  li { margin: 7px 0; }
+
+  /* ---------- before / after ---------- */
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+  .ba > div { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
+  .ba .lab { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+             padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  .ba .before .lab { color: var(--red); }
+  .ba .after  .lab { color: var(--green); }
+  .ba pre { margin: 0; border: 0; border-radius: 0; background: transparent; font-size: 11.5px; }
+
+  code, kbd { background: var(--code-bg); border: 1px solid var(--border); padding: .08em .38em;
+              border-radius: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+              font-size: .87em; }
+  kbd { font-weight: 600; }
+  code { overflow-wrap: anywhere; }
+  pre code { overflow-wrap: normal; background: none; border: 0; padding: 0; font-size: inherit; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+        padding: 15px 17px; overflow-x: auto; margin: 0; box-shadow: var(--shadow);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12.5px; line-height: 1.55; }
+  .ba pre { box-shadow: none; }
+
+  table { border-collapse: collapse; width: 100%; margin: 18px 0 0; font-size: 14.5px;
+          display: block; overflow-x: auto; }
+  th, td { border: 1px solid var(--border); padding: 10px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--panel); font-size: 13px; }
+
+  .note { border-left: 3px solid var(--accent); background: var(--panel); padding: 13px 16px;
+          border-radius: 0 10px 10px 0; margin: 18px 0 0; font-size: 14.5px; }
+  .band.tint .note { background: var(--bg); }
+  .note b { color: var(--accent); }
+
+  .shot { display: block; width: 100%; height: auto; border: 1px solid var(--border);
+          border-radius: 12px; background: var(--bg); }
+  .shot-cap { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; }
+  /* the illustrations carry small type, so any of them can be opened full-screen */
+  .shot { cursor: zoom-in; transition: box-shadow .16s, transform .16s; }
+  .shot:hover { transform: translateY(-2px); }
+  .zoom { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center;
+          justify-content: center; padding: 3vmin; cursor: zoom-out;
+          background: rgba(13, 17, 23, .82); backdrop-filter: blur(3px); }
+  .zoom > svg { width: auto; height: auto; max-width: 96vw; max-height: 90vh;
+                background: var(--bg); border-radius: 12px; cursor: zoom-out;
+                box-shadow: 0 24px 70px rgba(0,0,0,.5); }
+  .zoom-hint { position: fixed; left: 0; right: 0; bottom: 14px; text-align: center;
+               color: rgba(255,255,255,.72); font-size: 12.5px; }
+  .shot text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .shot .mono, .shot .mono text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .shot .mono text { white-space: pre; }
+
+  .cta { border: 1px solid var(--border); border-radius: 16px; background: var(--panel);
+         padding: 30px 32px; box-shadow: var(--shadow); margin-top: 46px; }
+  .cta h2 { font-size: 24px; }
+  a { color: var(--accent); }
+  footer { padding: 26px 0 0; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 900px) {
+    .row, .row.even, .row.narrow-media, .row.flip, .row.flip.narrow-media,
+    .row.big-media, .row.flip.big-media, .hero-row { grid-template-columns: 1fr; gap: 22px; }
+    .band.flagship { padding: 44px 0; } .band.flagship h2 { font-size: 27px; }
+    .band.flagship .pitch { font-size: 16.5px; }
+    .flag { padding: 0 20px; margin-bottom: 20px; font-size: 11px; }
+    .row.flip .col-text, .row.flip .col-media { order: initial; }
+    .brand { font-size: 44px; } .tagline { font-size: 19px; } h2 { font-size: 24px; }
+    .hero { padding: 46px 22px 40px; } .band { padding: 40px 0; }
+    .wrap, .stats { padding: 0 20px; }
+    .ba { grid-template-columns: 1fr; }
+  }
+
+  /* Get-it band: the first thing after the hero stats, so the download never
+     depends on the reader making it to the bottom of the page. */
+  .getit { padding: 44px 0 46px; }
+  .getit-card {
+    max-width: 1064px; margin: 0 auto; padding: 30px 34px 28px;
+    border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow);
+    background:
+      radial-gradient(120% 160% at 0% 0%, rgba(102,126,234,.13), transparent 60%),
+      radial-gradient(120% 160% at 100% 100%, rgba(118,75,162,.13), transparent 60%),
+      var(--bg);
+  }
+  .getit h2 { font-size: 30px; margin: 0 0 6px; }
+  .getit .getit-sub { font-size: 16.5px; color: var(--muted); margin: 0; }
+  .dl-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 22px 0 12px; }
+  .dl {
+    display: inline-flex; align-items: baseline; gap: 9px;
+    padding: 15px 28px; border-radius: 11px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--fg);
+    text-decoration: none; font-size: 17px; font-weight: 700; line-height: 1.2;
+  }
+  .dl small { font-size: 12.5px; font-weight: 600; opacity: .72; }
+  .dl:hover { border-color: var(--accent); color: var(--accent); }
+  .dl.primary { background: var(--accent); border-color: var(--accent); color: #fff;
+                box-shadow: 0 8px 22px rgba(9,105,218,.32); }
+  .dl.primary:hover { color: #fff; opacity: .93; }
+  .dl-note { font-size: 13.5px; color: var(--muted); margin: 6px 0 0; max-width: 860px; }
+  @media (max-width: 900px) {
+    .getit { padding: 30px 0; } .getit-card { padding: 22px 20px; } .getit h2 { font-size: 24px; }
+    .dl { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <div class="hero-row">
+      <div>
+        <p class="kicker">Browser extension for Garoon · kintone · GitHub</p>
+        <h1 class="brand">G&amp;K&nbsp;Tools<span class="ver">v1.0</span></h1>
+        <p class="tagline">The copy-paste part of your day, down to one click.</p>
+        <p class="sub">Read Markdown specs and their pull-request diffs as real documents — then let it
+           lift backlog items, sprint hours and spec comments out of Garoon and kintone, already
+           formatted.</p>
+        <div class="badges">
+          <span>5 tools</span><span>Firefox + Chrome</span><span>Nothing to configure</span>
+          <span>Nothing uploaded anywhere</span>
+        </div>
+      </div>
+      <div><svg class="shot sm" viewBox="0 0 300 268" role="img" aria-label="The toolbar popup: kintone, Garoon and Tools groups">
+  <defs>
+    <linearGradient id="gHero" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#667eea"/><stop offset="1" stop-color="#764ba2"/></linearGradient>
+    <linearGradient id="gKin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+    <linearGradient id="gGar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#059669"/><stop offset="1" stop-color="#0d9488"/></linearGradient>
+    <linearGradient id="gTool" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d97706"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+  </defs>
+  <rect x="8" y="8" width="284" height="252" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+  <path d="M8 18a10 10 0 0 1 10-10h264a10 10 0 0 1 10 10v22H8z" fill="url(#gHero)"/>
+  <text x="22" y="29" font-size="11" font-weight="700" fill="#fff">G&amp;K Tools</text>
+  <rect x="92" y="17" width="36" height="14" rx="7" fill="none" stroke="rgba(255,255,255,.55)"/>
+  <text x="98" y="27" font-size="8" font-weight="600" fill="#fff">About</text>
+  <rect x="252" y="17" width="26" height="14" rx="7" fill="rgba(255,255,255,.22)"/>
+  <text x="258" y="27" font-size="8" fill="#fff">v1.0</text>
+
+  <g>
+    <rect x="20" y="52" width="260" height="52" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M20 59a7 7 0 0 1 7-7h246a7 7 0 0 1 7 7v11H20z" fill="url(#gKin)"/>
+    <text x="30" y="65" font-size="9" font-weight="700" fill="#fff">kintone</text>
+    <rect x="28" y="76" width="244" height="13" rx="4" fill="var(--panel)" stroke="var(--border)"/>
+    <text x="33" y="85" font-size="7.5" fill="var(--muted)">Key,Summary</text>
+    <text x="30" y="99" font-size="8.5" fill="var(--fg)">📋 Copy PBI Contents</text>
+  </g>
+  <g>
+    <rect x="20" y="112" width="260" height="56" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M20 119a7 7 0 0 1 7-7h246a7 7 0 0 1 7 7v11H20z" fill="url(#gGar)"/>
+    <text x="30" y="125" font-size="9" font-weight="700" fill="#fff">Garoon</text>
+    <text x="30" y="144" font-size="8.5" fill="var(--fg)">💬 Copy Schedule comment</text>
+    <text x="30" y="160" font-size="8.5" fill="var(--fg)">⏱ Copy Schedule Sprint</text>
+  </g>
+  <g>
+    <rect x="20" y="176" width="260" height="56" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M20 183a7 7 0 0 1 7-7h246a7 7 0 0 1 7 7v11H20z" fill="url(#gTool)"/>
+    <text x="30" y="189" font-size="9" font-weight="700" fill="#fff">Tools</text>
+    <text x="30" y="208" font-size="8.5" fill="var(--fg)">📝 Markdown Text Viewer</text>
+    <text x="30" y="224" font-size="8.5" fill="var(--fg)">🔀 Git Markdown Viewer</text>
+  </g>
+</svg></div>
+    </div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><b>Markdown, rendered</b><span>specs and .txt files read as documents — no plugin, no upload, no waiting</span></div>
+  <div class="stat"><b>Side by side</b><span>a .md diff marked on the rendered content, not on raw HTML lines</span></div>
+  <div class="stat"><b>1 click</b><span>copies a whole record list — Story Points already totalled</span></div>
+</div>
+
+<div class="getit" id="top-download">
+  <div class="getit-card">
+    <h2>Get it — v1.0</h2>
+    <p class="getit-sub">One file, no account, nothing to configure. Pick your browser:</p>
+    <div class="dl-row">
+      
+      <a class="dl primary" href="gk-tools.xpi">⬇ Firefox <small>.xpi · v1.0</small></a>
+      <a class="dl" href="gk-tools-chrome.zip">⬇ Chrome / Edge <small>.zip · v1.0</small></a>
+    </div>
+    <p class="dl-note"><b>Firefox:</b> this build is not signed yet, so Firefox takes it as a temporary add-on only (about:debugging → This Firefox → Load Temporary Add-on).
+       <b>Chrome / Edge:</b> unzip the .zip, open <code>chrome://extensions</code>, turn on <b>Developer mode</b>,
+       then <b>Load unpacked</b> and pick the unzipped folder.</p>
+  </div>
+</div>
+
+<div class="band">
+  <div class="wrap">
+  <div class="row even">
+    <div class="col-text">
+      <span class="tag tools">Why it starts with Markdown</span>
+      <h2>AI writes Markdown. Your team reads it all day.</h2>
+      <p class="pitch">Specs, backlog breakdowns, review notes, retro reports — more and more of them are drafted
+         as <code>.md</code> by an assistant and then read, checked and diffed by people. Markdown won that job
+         precisely because it is plain text: cheap for a model to produce, clean for git to version, readable
+         without a viewer.</p>
+    </div>
+    <div class="col-media">
+      <p class="pitch">“Readable without a viewer” is where it stops being true. A Garoon spec keeps whole
+         HTML tables on single 5000-character lines. A pull request shows you that <b>the line changed</b> — not
+         which cell, which bullet, which sentence. And a <code>.md</code> link on GitHub does not even serve the
+         file; it serves a web page.</p>
+      <p class="sub2">So the two tools below come first. They turn a <code>.md</code> file — and a <code>.md</code>
+         diff — back into something a human can actually read.</p>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="band flagship tint">
+  <p class="flag">Flagship tool 1 of 2 — Markdown Text Viewer</p>
+  <div class="wrap">
+  <div class="row big-media">
+    <div class="col-text">
+      <span class="tag tools">any .md / .txt link</span>
+      <h2>Read the spec, not the markup.</h2>
+      <p class="pitch">Right-click any <code>.md</code> or <code>.txt</code> link and it opens as a real document:
+         headings, tables, images, code — rendered instantly, with nothing sent anywhere.</p>
+      <ul>
+        <li><b>Never lose your place.</b> The table of contents opens on every run and follows your scrolling.</li>
+        <li><b>Switch files without going back.</b> <b>📚 N files</b> lists every document on the page you came
+            from; only the one you pick is fetched.</li>
+        <li><b>Copy what you need.</b> Hover a code block for a Copy button.</li>
+        <li><b>Actually see the screenshots.</b> Click an image for a full-screen view.</li>
+        <li><b>Reads the way GitHub reads it.</b> Two-space line breaks stay breaks, and escaped text such as
+            <code>HKEY\_LOCAL\_MACHINE</code> comes out as written — no stray backslashes, no sentences run
+            together.</li>
+        <li><b>Long specs stay navigable.</b> <kbd>Home</kbd> / <kbd>End</kbd>, a ↑ Top button, keyword search.</li>
+      </ul>
+    </div>
+    <div class="col-media">
+      <svg class="shot" viewBox="0 0 660 330" role="img"
+     aria-label="Markdown Text Viewer: table of contents on the left, rendered document on the right">
+  <rect x="6" y="6" width="648" height="318" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <!-- header -->
+  <path d="M6 15a9 9 0 0 1 9-9h630a9 9 0 0 1 9 9v40H6z" fill="var(--panel)"/>
+  <line x1="6" y1="55" x2="654" y2="55" stroke="var(--border)"/>
+  <rect x="16" y="17" width="18" height="18" rx="4" fill="none" stroke="var(--accent)"/>
+  <line x1="24" y1="17" x2="24" y2="35" stroke="var(--accent)"/>
+  <text x="42" y="31" font-size="11" font-weight="700" fill="var(--fg)">📝 Markdown Text Viewer</text>
+  <rect x="188" y="18" width="232" height="17" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <text class="mono" x="195" y="30" font-size="7.5" font-weight="700" fill="var(--fg)">📄 docs/spec/…/install-overview/index.md</text>
+  <rect x="426" y="18" width="16" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="430" y="30" font-size="9" fill="var(--accent)">↗</text>
+  <rect x="450" y="18" width="66" height="17" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="456" y="30" font-size="8" fill="var(--fg)">📚 2 files ▾</text>
+  <rect x="524" y="18" width="86" height="17" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="530" y="30" font-size="8" fill="var(--muted)">🔍 Search…</text>
+  <rect x="618" y="18" width="26" height="17" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="622" y="30" font-size="7.5" fill="var(--fg)">↑ Top</text>
+
+  <!-- TOC, flush at the left edge -->
+  <text x="16" y="72" font-size="7" font-weight="700" fill="var(--muted)" letter-spacing="1">CONTENTS</text>
+  <rect x="12" y="80" width="150" height="13" rx="3" fill="var(--panel)"/>
+  <rect x="12" y="80" width="2" height="13" fill="var(--accent)"/>
+  <text x="20" y="90" font-size="7.5" font-weight="700" fill="var(--accent)">🔷 PBI-8: Admin — Add user…</text>
+  <text x="20" y="106" font-size="7.5" fill="var(--fg)">🔷 PBI-9: Admin — Delete…</text>
+  <text x="20" y="121" font-size="7.5" fill="var(--fg)">🔷 PBI-10: Admin — Mailbox…</text>
+  <text x="20" y="136" font-size="7.5" fill="var(--fg)">🔷 PBI-11: Admin — Set default…</text>
+  <text x="20" y="151" font-size="7.5" fill="var(--fg)">🔷 PBI-12: End user — Display…</text>
+  <text x="20" y="166" font-size="7.5" fill="var(--fg)">🔷 PBI-13: End user — Mail list…</text>
+  <text x="20" y="181" font-size="7.5" fill="var(--fg)">🔷 PBI-14: End user — Preview…</text>
+  <text x="20" y="196" font-size="7.5" fill="var(--muted)">…</text>
+
+  <!-- draggable divider -->
+  <line x1="176" y1="62" x2="176" y2="316" stroke="var(--accent)" stroke-width="2"/>
+  <rect x="171" y="176" width="10" height="26" rx="5" fill="var(--bg)" stroke="var(--accent)"/>
+  <line x1="174" y1="182" x2="174" y2="196" stroke="var(--accent)"/>
+  <line x1="178" y1="182" x2="178" y2="196" stroke="var(--accent)"/>
+
+  <!-- rendered document -->
+  <text x="196" y="80" font-size="14" font-weight="700" fill="var(--fg)">🔷 PBI-8: Admin — Add user/role/org</text>
+  <line x1="196" y1="88" x2="640" y2="88" stroke="var(--border)"/>
+  <text x="196" y="104" font-size="8.5" fill="var(--fg)"><tspan font-weight="700">Summary:</tspan> Implement the admin screen to assign access.</text>
+  <text x="196" y="122" font-size="8.5" font-weight="700" fill="var(--fg)">CoA:</text>
+  <rect x="196" y="128" width="444" height="46" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+  <rect x="592" y="133" width="42" height="14" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="599" y="143" font-size="7.5" fill="var(--accent)">Copy</text>
+  <text class="mono" x="204" y="145" font-size="7.5" fill="var(--fg)">- Administrators can add user/role/org.</text>
+  <text class="mono" x="204" y="160" font-size="7.5" fill="var(--fg)">- The screen follows the group pattern.</text>
+  <!-- image with zoom hint -->
+  <rect x="196" y="186" width="180" height="86" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+  <circle cx="286" cy="225" r="15" fill="none" stroke="var(--muted)"/>
+  <line x1="297" y1="236" x2="306" y2="245" stroke="var(--muted)" stroke-width="2"/>
+  <text x="238" y="264" font-size="7" fill="var(--muted)">click to zoom</text>
+  <text x="392" y="200" font-size="8.5" fill="var(--fg)"><tspan font-weight="700">SP:</tspan> 3</text>
+  <text x="392" y="218" font-size="8" fill="var(--muted)">Relative images and links are re-based</text>
+  <text x="392" y="232" font-size="8" fill="var(--muted)">on the document’s own URL, so screenshots</text>
+  <text x="392" y="246" font-size="8" fill="var(--muted)">embedded in the spec show up as well.</text>
+</svg>
+      <p class="shot-cap">Contents on the left — drag the divider to give the text more room.</p>
+    </div>
+  </div>
+  <div class="row flip even">
+    <div class="col-text">
+      <h3>A <code>.txt</code> stays a <code>.txt</code></h3>
+      <p class="pitch">Plain files open in plain-text mode: line breaks, indentation and characters like
+         <code>*</code> exactly as written, with an editor-style gutter. Copy the file and you get the file —
+         the numbers stay behind.</p>
+      <div class="note">
+        <b>Nothing leaves your browser.</b> Files are fetched the way your browser already fetches them, and
+        rendered on the spot — nothing is uploaded, there is no service to sign into and no token to paste. The
+        screenshots embedded in a document appear as well, instead of the broken-image icons you get elsewhere.
+      </div>
+    </div>
+    <div class="col-media">
+      <svg class="shot" viewBox="0 0 660 156" role="img" aria-label="Plain-text mode with an editor-style line-number gutter">
+  <rect x="6" y="6" width="648" height="144" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <line x1="52" y1="16" x2="52" y2="140" stroke="var(--border)"/>
+  <g class="mono" font-size="8.5" fill="var(--muted)" text-anchor="end">
+    <text x="40" y="30">1</text><text x="40" y="46">2</text><text x="40" y="62">3</text>
+    <text x="40" y="78">4</text><text x="40" y="94">5</text><text x="40" y="110">6</text><text x="40" y="126">7</text>
+  </g>
+  <!-- xml:space="preserve" keeps the leading spaces: the whole point of this
+       picture is that the file's own alignment survives. -->
+  <g class="mono" font-size="8.5" fill="var(--fg)" xml:space="preserve">
+    <text x="66" y="30">Sprint 12 retro — sample</text>
+    <text x="66" y="46">===========================</text>
+    <text x="66" y="78">  Task            | Score</text>
+    <text x="66" y="94">  ----------------|------</text>
+    <text x="66" y="110">  DEV-3981       | 5/5</text>
+  </g>
+  <text x="66" y="141" font-size="7.5" fill="var(--muted)">Indentation, alignment and “*” kept exactly as in the file — the numbers are not part of a copy.</text>
+</svg>
+      <p class="shot-cap">Retro reports and logs keep their alignment.</p>
+    </div>
+  </div>
+  <div class="row narrow-media">
+    <div class="col-text">
+      <h3>Where you find it — two ways in</h3>
+      <p class="sub2">The first entry opens the file you clicked. The second jumps straight to the 📚 list, for
+         pages whose file names are not links to the file at all.</p>
+    </div>
+    <div class="col-media">
+      <svg class="shot menu" viewBox="0 0 560 174" role="img" aria-label="Right-click menu on a markdown link">
+  <rect x="5" y="5" width="550" height="164" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="18" y="27" font-size="9.5" fill="var(--muted)">Right-click a .md / .txt link — or a file name on a pull request:</text>
+  <rect x="14" y="34" width="278" height="124" rx="8" fill="var(--panel)" stroke="var(--border)"/>
+  <text x="29" y="50" font-size="10" fill="var(--muted)">Open Link in New Tab · Copy Link</text>
+  <line x1="14" y1="64" x2="292" y2="64" stroke="var(--border)"/>
+  <rect x="18" y="64" width="270" height="21" rx="4" fill="var(--bg)"/>
+  <rect x="18" y="64" width="3" height="21" fill="var(--accent)"/>
+  <text x="29" y="79" font-size="10" font-weight="700" fill="var(--accent)">GK Tools - Markdown Text Viewer</text>
+  <rect x="18" y="88" width="270" height="21" rx="4" fill="var(--bg)"/>
+  <rect x="18" y="88" width="3" height="21" fill="var(--accent)"/>
+  <text x="29" y="103" font-size="10" font-weight="700" fill="var(--accent)">GK Tools - Markdown Text Viewer (pick a file…)</text>
+  <line x1="14" y1="117" x2="292" y2="117" stroke="var(--border)"/>
+  <text x="29" y="132" font-size="10" fill="var(--muted)">Inspect</text>
+  <text x="312" y="58" font-size="10" fill="var(--fg)">The first opens the file you clicked.</text>
+  <text x="312" y="75" font-size="10" fill="var(--fg)">The second jumps to the 📚 list —</text>
+  <text x="312" y="92" font-size="10" fill="var(--fg)">for pages whose file names are not</text>
+  <text x="312" y="109" font-size="10" fill="var(--fg)">links to the file, like a PR file tree.</text>
+</svg>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="band flagship">
+  <p class="flag">Flagship tool 2 of 2 — Git Markdown Viewer</p>
+  <div class="wrap">
+  <div class="row flip big-media">
+    <div class="col-text">
+      <span class="tag tools">GitHub pull request</span>
+      <h2>See what changed — not where the HTML moved.</h2>
+      <p class="pitch">Garoon spec files keep whole HTML tables on single 5000-character lines. GitHub highlights
+         the entire line and you are left hunting. G&amp;K Tools renders <b>both versions side by side</b> and marks
+         the difference on the content itself — the cell, the bullet, the sentence.</p>
+      <ul>
+        <li><b>Paired labels, so you can see what replaced what.</b> The two halves of one change are
+            <b>2-o</b> on the left and <b>2-n</b> on the right — click either and it jumps to its counterpart.
+            A change with nothing opposite it is greyed, so “edited” never looks like “added”.</li>
+        <li><b>Both sides stay level.</b> An added or deleted block leaves blank space opposite it, so a change is
+            always beside its counterpart instead of beside unrelated text — in <b>both</b> viewing modes.</li>
+        <li><b>Line numbers, and click to pick a line.</b> Each side numbers its own lines; click the text to
+            highlight the whole line across both panes, or a number to highlight just that side.</li>
+        <li><b>“Changes only”, with context.</b> Untouched content collapses, but neighbouring rows stay — and
+            both sides keep the same context.</li>
+        <li><b>One button, no menu.</b> A floating <b>📄 View .md diff (N)</b> appears on any pull request that
+            touches a <code>.md</code> file.</li>
+        <li><b>Reads what the PR proposes.</b> Files open at the pull request’s head commit, not at
+            <code>main</code>.</li>
+      </ul>
+    </div>
+    <div class="col-media">
+      <svg class="shot" viewBox="0 0 660 330" role="img"
+     aria-label="Git Markdown Viewer: old and new versions side by side, line numbers in each gutter, paired 1-o and 1-n labels on the two halves of a change, striped filler opposite an added block, and one line highlighted across both panes">
+  <defs>
+    <!-- the blank space that keeps a one-sided change level with the other pane -->
+    <pattern id="gFill" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="var(--panel)"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="var(--border)" stroke-width="3.5"/>
+    </pattern>
+  </defs>
+  <rect x="6" y="6" width="648" height="318" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <!-- top bar -->
+  <path d="M6 15a9 9 0 0 1 9-9h630a9 9 0 0 1 9 9v26H6z" fill="var(--panel)"/>
+  <line x1="6" y1="41" x2="654" y2="41" stroke="var(--border)"/>
+  <text x="18" y="27" font-size="10" font-weight="700" fill="var(--fg)">🔀 Git Markdown Viewer</text>
+  <rect x="166" y="12" width="16" height="16" rx="3" fill="var(--bg)" stroke="var(--accent)"/>
+  <path d="M170 20l3 3 6-6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+  <text x="188" y="26" font-size="9" fill="var(--fg)">Changes only</text>
+  <rect x="596" y="11" width="48" height="18" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="604" y="24" font-size="8" fill="var(--fg)">✕ Close</text>
+
+  <!-- pane heads -->
+  <text x="18" y="58" font-size="8" font-weight="700" fill="var(--muted)">Old (base)</text>
+  <text x="340" y="58" font-size="8" font-weight="700" fill="var(--muted)">New (head)</text>
+  <line x1="330" y1="46" x2="330" y2="320" stroke="var(--border)"/>
+  <line x1="6" y1="64" x2="654" y2="64" stroke="var(--border)"/>
+
+  <!-- file header with legends + nav -->
+  <rect x="6" y="64" width="648" height="26" fill="var(--panel)"/>
+  <line x1="6" y1="90" x2="654" y2="90" stroke="var(--border)"/>
+  <text x="18" y="81" font-size="7.5" fill="var(--fg)">▾</text>
+  <text class="mono" x="32" y="81" font-size="7.5" font-weight="700" fill="var(--fg)">docs/spec/…/install-overview/index.md</text>
+  <rect x="330" y="70" width="3" height="13" fill="#cf222e"/>
+  <text x="338" y="81" font-size="7.5" fill="var(--muted)">removed/changed 2</text>
+  <rect x="440" y="70" width="3" height="13" fill="#1a7f37"/>
+  <text x="448" y="81" font-size="7.5" fill="var(--muted)">added/changed 3</text>
+  <rect x="556" y="69" width="18" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="561" y="81" font-size="8" fill="var(--fg)">↑</text>
+  <text x="580" y="81" font-size="7.5" fill="var(--muted)">1/3</text>
+  <rect x="604" y="69" width="18" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="609" y="81" font-size="8" fill="var(--fg)">↓</text>
+
+  <!-- the picked line, highlighted across BOTH panes -->
+  <rect x="6" y="228" width="648" height="18" fill="#0969da1f"/>
+  <rect x="6" y="228" width="648" height="18" fill="none" stroke="#0969da66"/>
+
+  <!-- OLD pane: line numbers in the gutter, content to their right -->
+  <g class="mono" font-size="7" fill="var(--muted)" text-anchor="end">
+    <text x="28" y="110">6</text><text x="28" y="130">7</text><text x="28" y="174">8</text>
+    <text x="28" y="190">9</text><text x="28" y="241">10</text>
+  </g>
+  <text x="38" y="110" font-size="8" fill="var(--fg)">Is Visual C++ 2013 Redistribute installed?</text>
+  <rect x="34" y="118" width="286" height="34" rx="3" fill="#ffebe9"/>
+  <rect x="34" y="118" width="3" height="34" fill="#cf222e"/>
+  <rect x="42" y="122" width="21" height="12" rx="4" fill="#8957e5"/>
+  <text x="52.5" y="131" font-size="7" font-weight="700" fill="#fff" text-anchor="middle">1-o</text>
+  <text x="68" y="131" font-size="7.5" fill="#1f2328">The installer detects whether the</text>
+  <text x="42" y="145" font-size="7.5" fill="#1f2328">Visual C++ 2013 package is installed.</text>
+  <text x="38" y="174" font-size="8" fill="var(--fg)">- VC++ 2015: 0 (ex.14.0.xxxxx)</text>
+  <text x="38" y="190" font-size="8" fill="var(--fg)">- VC++ 2017: 1 (ex.14.1x.xxxxx)</text>
+  <!-- nothing here on this side: blank space keeps the panes level -->
+  <rect x="34" y="198" width="286" height="24" rx="3" fill="url(#gFill)"/>
+  <text x="38" y="241" font-size="8" fill="var(--fg)">- VC++ 2019: 2 (ex.14.2x.xxxxx)</text>
+
+  <!-- NEW pane -->
+  <g class="mono" font-size="7" fill="var(--muted)" text-anchor="end">
+    <text x="350" y="110">6</text><text x="350" y="130">7</text><text x="350" y="174">8</text>
+    <text x="350" y="190">9</text><text x="350" y="212">10</text><text x="350" y="241">11</text>
+  </g>
+  <text x="360" y="110" font-size="8" fill="var(--fg)">Is Visual C++ 2013 Redistribute installed?</text>
+  <rect x="356" y="118" width="286" height="34" rx="3" fill="#e6ffec"/>
+  <rect x="356" y="118" width="3" height="34" fill="#1a7f37"/>
+  <rect x="364" y="122" width="21" height="12" rx="4" fill="#8957e5"/>
+  <text x="374.5" y="131" font-size="7" font-weight="700" fill="#fff" text-anchor="middle">1-n</text>
+  <text x="390" y="131" font-size="7.5" fill="#1f2328">As of DEV-3981, the installer no</text>
+  <text x="364" y="145" font-size="7.5" fill="#1f2328">longer installs the Visual C++ 2013 pkg.</text>
+  <text x="360" y="174" font-size="8" fill="var(--fg)">- VC++ 2015: 0 (ex.14.0.xxxxx)</text>
+  <text x="360" y="190" font-size="8" fill="var(--fg)">- VC++ 2017: 1 (ex.14.1x.xxxxx)</text>
+  <!-- added, with nothing it replaces: the label is greyed, not purple -->
+  <rect x="356" y="198" width="286" height="24" rx="3" fill="#e6ffec"/>
+  <rect x="356" y="198" width="3" height="24" fill="#1a7f37"/>
+  <rect x="364" y="203" width="21" height="12" rx="4" fill="#6e7681"/>
+  <text x="374.5" y="212" font-size="7" font-weight="700" fill="#fff" text-anchor="middle">2-n</text>
+  <text x="390" y="212" font-size="7.5" fill="#1f2328">Note: Windows 8 handling removed.</text>
+  <text x="360" y="241" font-size="8" fill="var(--fg)">- VC++ 2019: 2 (ex.14.2x.xxxxx)</text>
+
+  <!-- callouts -->
+  <text x="38" y="266" font-size="7.5" fill="var(--muted)">▨ blank space opposite an added block — both sides stay level</text>
+  <text x="38" y="280" font-size="7.5" fill="var(--muted)">1-o ⇄ 1-n  two halves of one change; click either to jump to the other</text>
+  <text x="38" y="294" font-size="7.5" fill="var(--muted)">▬ line 10 picked: highlighted on both sides (a number picks one side only)</text>
+
+  <!-- floating button -->
+  <rect x="470" y="288" width="164" height="26" rx="13" fill="#1f6feb"/>
+  <text x="486" y="305" font-size="9" font-weight="700" fill="#fff">📄 View .md diff (2)</text>
+</svg>
+      <p class="shot-cap">Paired labels tie the two halves of a change together, blank space keeps the panes level,
+         and a picked line lights up across both sides. ↑ ↓ walk you through the changes, file by file.</p>
+    </div>
+  </div>
+  <div class="row narrow-media">
+    <div class="col-text">
+      <h3>Where you find it</h3>
+      <p class="sub2">Offered only when the pull request really changes a <code>.md</code> file — the page is
+         scanned before the menu is shown.</p>
+    </div>
+    <div class="col-media">
+      <svg class="shot menu" viewBox="0 0 560 174" role="img" aria-label="Right-click menu on a pull request files-changed page">
+  <rect x="5" y="5" width="550" height="164" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="18" y="27" font-size="9.5" fill="var(--muted)">Right-click on a pull request “Files changed” page:</text>
+  <rect x="14" y="34" width="278" height="124" rx="8" fill="var(--panel)" stroke="var(--border)"/>
+  <text x="29" y="50" font-size="10" fill="var(--muted)">Back · Forward · Reload</text>
+  <line x1="14" y1="64" x2="292" y2="64" stroke="var(--border)"/>
+  <rect x="18" y="64" width="270" height="21" rx="4" fill="var(--bg)"/>
+  <rect x="18" y="64" width="3" height="21" fill="var(--accent)"/>
+  <text x="29" y="79" font-size="10" font-weight="700" fill="var(--accent)">GK Tools - Git Markdown Viewer</text>
+  <text x="29" y="103" font-size="10" fill="var(--muted)">GK Tools - Markdown Text Viewer (pick a file…)</text>
+  <line x1="14" y1="117" x2="292" y2="117" stroke="var(--border)"/>
+  <text x="29" y="132" font-size="10" fill="var(--muted)">View Page Source · Inspect</text>
+  <text x="312" y="58" font-size="10" fill="var(--fg)">Shown only when the pull request really</text>
+  <text x="312" y="75" font-size="10" fill="var(--fg)">changes a .md file — the page is scanned</text>
+  <text x="312" y="92" font-size="10" fill="var(--fg)">before the menu is offered.</text>
+</svg>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="band tint">
+  <div class="wrap">
+  <div class="row ">
+    <div class="col-text">
+      <span class="tag garoon">Garoon · kintone</span>
+      <h2>And the everyday copy-paste, gone.</h2>
+      <p class="pitch">The other three tools take the parts of Garoon and kintone you retype every week and hand
+         them over already formatted.</p>
+      <p class="pitch" style="margin-top:20px"><b>Copy PBI Contents</b> — open a record list, click once, paste.
+         The columns you care about come out as clean lines, and the Story Points arrive
+         <b>already added up</b>.</p>
+    </div>
+    <div class="col-media">
+      <svg class="shot" viewBox="0 0 660 186" role="img"
+     aria-label="A kintone backlog record list, and the lines G&amp;K Tools copies out of it">
+  <rect x="5" y="5" width="650" height="176" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="512" y="22" font-size="9" fill="var(--muted)">Records 1 - 100 of 1284</text>
+
+  <!-- table header -->
+  <g font-size="9" fill="#3b4a2f">
+    <rect x="16" y="28" width="628" height="22" fill="#ffffff" stroke="#cfdcae"/>
+    <text x="26" y="43">Key</text>
+    <text x="98" y="43">Story points</text>
+    <text x="176" y="43">Requirement No.</text>
+    <text x="272" y="43">Status</text>
+    <text x="352" y="43">Summary</text>
+    <text x="596" y="43">Sprint</text>
+  </g>
+
+  <!-- rows: green tint like kintone, cyan Status cell -->
+  <g font-size="9" fill="#24292f">
+    <rect x="16" y="50" width="628" height="24" fill="#eaf4d5" stroke="#cfdcae"/>
+    <rect x="264" y="50" width="80" height="24" fill="#cdf2f7" stroke="#cfdcae"/>
+    <text x="26" y="66">DEV-4108</text><text x="238" y="66" text-anchor="end" fill="#0969da">4102</text>
+    <text x="272" y="66">New</text><text x="352" y="66">Update the sanitizer lib to 2.8.x (≥ 2.8.4)</text>
+
+    <rect x="16" y="74" width="628" height="24" fill="#ffffff" stroke="#cfdcae"/>
+    <rect x="264" y="74" width="80" height="24" fill="#cdf2f7" stroke="#cfdcae"/>
+    <text x="26" y="90">DEV-4107</text><text x="238" y="90" text-anchor="end" fill="#0969da">4102</text>
+    <text x="272" y="90">New</text><text x="352" y="90">Apply editor security patches #2</text>
+
+    <rect x="16" y="98" width="628" height="24" fill="#eaf4d5" stroke="#cfdcae"/>
+    <rect x="264" y="98" width="80" height="24" fill="#cdf2f7" stroke="#cfdcae"/>
+    <text x="26" y="114">DEV-4106</text><text x="238" y="114" text-anchor="end" fill="#0969da">4102</text>
+    <text x="272" y="114">New</text><text x="352" y="114">Apply editor security patches #1</text>
+
+    <rect x="16" y="122" width="628" height="24" fill="#ffffff" stroke="#cfdcae"/>
+    <rect x="264" y="122" width="80" height="24" fill="#cdf2f7" stroke="#cfdcae"/>
+    <text x="26" y="138">DEV-4105</text><text x="90" y="138" fill="#59636e">3</text>
+    <text x="238" y="138" text-anchor="end" fill="#0969da">4088</text>
+    <text x="272" y="138">New</text><text x="352" y="138">Fix stale and missing lockfile deps for the frontend lint</text>
+
+    <rect x="16" y="146" width="628" height="24" fill="#eaf4d5" stroke="#cfdcae"/>
+    <rect x="264" y="146" width="80" height="24" fill="#cdf2f7" stroke="#cfdcae"/>
+    <text x="26" y="162">DEV-4104</text><text x="90" y="162" fill="#59636e">1</text>
+    <text x="238" y="162" text-anchor="end" fill="#0969da">4110</text>
+    <text x="272" y="162">New</text>
+    <text x="352" y="162"><tspan fill="#0969da">[SUP-1207]</tspan>Sending mail fails with MAIL_ERR_0142 when the body…</text>
+  </g>
+
+</svg>
+      <p class="shot-cap">1 284 records, five columns you did not ask for, Story Points scattered down the list.</p>
+    </div>
+  </div>
+  <div class="row flip even">
+    <div class="col-text">
+      <div class="ba">
+        <div class="before">
+          <div class="lab">Before — by hand</div>
+<pre><code>select DEV-4108… copy… paste…
+now its summary… copy… paste…
+next row… and the next…
+then add 3 + 1 by hand</code></pre>
+        </div>
+        <div class="after">
+          <div class="lab">After — one click</div>
+<pre><code>- DEV-4108: Update the sanitizer lib to 2.8.x
+- DEV-4107: Apply editor security patches #2
+- DEV-4106: Apply editor security patches #1
+- DEV-4105: Fix stale and missing lockfile deps
+- DEV-4104: [SUP-1207]Sending mail fails with…
+Story Points: 4</code></pre>
+        </div>
+      </div>
+      <p class="sub2">On a record detail page it reads the fields by label instead. The columns come from the
+         <b>“Columns to copy”</b> box in the popup — <code>Key,Summary</code> out of the box.</p>
+    </div>
+    <div class="col-media">
+      <svg class="shot menu" viewBox="0 0 560 150" role="img" aria-label="Right-click menu on a kintone record list">
+  <rect x="5" y="5" width="550" height="140" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="18" y="27" font-size="9.5" fill="var(--muted)">Right-click on a kintone record list:</text>
+  <rect x="14" y="34" width="278" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"/>
+  <text x="29" y="50" font-size="10" fill="var(--muted)">Back · Forward · Reload</text>
+  <line x1="14" y1="64" x2="292" y2="64" stroke="var(--border)"/>
+  <rect x="18" y="64" width="270" height="21" rx="4" fill="var(--bg)"/>
+  <rect x="18" y="64" width="3" height="21" fill="var(--accent)"/>
+  <text x="29" y="79" font-size="10" font-weight="700" fill="var(--accent)">GK Tools - Copy PBI Contents</text>
+  <line x1="14" y1="93" x2="292" y2="93" stroke="var(--border)"/>
+  <text x="29" y="108" font-size="10" fill="var(--muted)">View Page Source · Inspect</text>
+  <text x="312" y="58" font-size="10" fill="var(--fg)">One entry — the only one that means</text>
+  <text x="312" y="75" font-size="10" fill="var(--fg)">anything on a kintone app page.</text>
+</svg>
+      <p class="shot-cap">Where you find it.</p>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="band">
+  <div class="wrap">
+  <div class="row even">
+    <div class="col-text">
+      <span class="tag garoon">Garoon · event detail</span>
+      <h2>Every comment, in the right order, in one go.</h2>
+      <p class="pitch">Garoon shows comments newest-first. Reports need them oldest-first. One click and the whole
+         thread comes out in reading order, already separated — ready for the ticket.</p>
+      <p class="sub2">No scrolling back up the thread, no reordering afterwards.</p>
+    </div>
+    <div class="col-media">
+      <pre><code>DEV-4022 Fix the “Undefined variable” warning
+raised by the calendar widget
+-------------------------
+DEV-4061 Fix `Passing null to parameter` raised
+in the `str_width` helper called from
+`src/app/calendar/attendance_list.tpl`
+-------------------------
+DEV-4062: Switch the upload auth parameter from
+FQDN to tenant ID
+-------------------------</code></pre>
+    </div>
+  </div>
+  <div class="row narrow-media">
+    <div class="col-text">
+      <h3>Where you find it</h3>
+      <p class="sub2">Offered on the event detail page only — not on the portal, not on a list.</p>
+    </div>
+    <div class="col-media">
+      <svg class="shot menu" viewBox="0 0 560 150" role="img" aria-label="Right-click menu on a Garoon event detail page">
+  <rect x="5" y="5" width="550" height="140" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="18" y="27" font-size="9.5" fill="var(--muted)">Right-click on a Garoon event detail page:</text>
+  <rect x="14" y="34" width="278" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"/>
+  <text x="29" y="50" font-size="10" fill="var(--muted)">Back · Forward · Reload</text>
+  <line x1="14" y1="64" x2="292" y2="64" stroke="var(--border)"/>
+  <rect x="18" y="64" width="270" height="21" rx="4" fill="var(--bg)"/>
+  <rect x="18" y="64" width="3" height="21" fill="var(--accent)"/>
+  <text x="29" y="79" font-size="10" font-weight="700" fill="var(--accent)">GK Tools - Copy Schedule comment</text>
+  <line x1="14" y1="93" x2="292" y2="93" stroke="var(--border)"/>
+  <text x="29" y="108" font-size="10" fill="var(--muted)">View Page Source · Inspect</text>
+  <text x="312" y="58" font-size="10" fill="var(--fg)">Offered on /schedule/view.csp only —</text>
+  <text x="312" y="75" font-size="10" fill="var(--fg)">not on the portal, not on a list.</text>
+</svg>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="band tint">
+  <div class="wrap">
+  <div class="row flip even">
+    <div class="col-text">
+      <span class="tag garoon">Garoon · portal</span>
+      <h2>Your whole week, totalled.</h2>
+      <p class="pitch">Every event grouped by day, with hours per event, per day, and a grand total. Titles come
+         out clean: the <code>🍜 Ramen 🍜</code> prefix and the trailing <code>[room]</code> tags are stripped
+         for you.</p>
+      <p class="sub2">Timesheet, standup note, sprint report — paste and done.</p>
+    </div>
+    <div class="col-media">
+      <pre><code>- Thu, July 23 (2.42h)
+   + Daily Scrum (0.25h)
+   + Garoon Daily Refinement (0.83h)
+
+- Fri, July 24 (2.83h)
+   + ...
+
+Total: 12.50h</code></pre>
+    </div>
+  </div>
+  <div class="row narrow-media">
+    <div class="col-text">
+      <h3>Where you find it</h3>
+      <p class="sub2">The week view lives on the portal, so the sprint total belongs there too.</p>
+    </div>
+    <div class="col-media">
+      <svg class="shot menu" viewBox="0 0 560 150" role="img" aria-label="Right-click menu on the Garoon portal page">
+  <rect x="5" y="5" width="550" height="140" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="18" y="27" font-size="9.5" fill="var(--muted)">Right-click on the Garoon portal / top page:</text>
+  <rect x="14" y="34" width="278" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"/>
+  <text x="29" y="50" font-size="10" fill="var(--muted)">Back · Forward · Reload</text>
+  <line x1="14" y1="64" x2="292" y2="64" stroke="var(--border)"/>
+  <rect x="18" y="64" width="270" height="21" rx="4" fill="var(--bg)"/>
+  <rect x="18" y="64" width="3" height="21" fill="var(--accent)"/>
+  <text x="29" y="79" font-size="10" font-weight="700" fill="var(--accent)">GK Tools - Copy Schedule Sprint</text>
+  <line x1="14" y1="93" x2="292" y2="93" stroke="var(--border)"/>
+  <text x="29" y="108" font-size="10" fill="var(--muted)">View Page Source · Inspect</text>
+  <text x="312" y="58" font-size="10" fill="var(--fg)">The week view lives here, so the</text>
+  <text x="312" y="75" font-size="10" fill="var(--fg)">sprint total belongs here too.</text>
+</svg>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="band">
+  <div class="wrap">
+    <div class="lead">
+      <h2>It shows up exactly where you need it.</h2>
+      <p class="pitch">No launcher, no dashboard. The right-click menu offers the one thing that makes sense on
+         the page you are looking at.</p>
+    </div>
+    <table>
+      <tr><th>Right-click item</th><th>Appears on</th></tr>
+      <tr><td><b>Markdown Text Viewer</b></td>
+          <td>a <code>.md</code> / <code>.markdown</code> / <code>.txt</code> link — <b>or a file name on a pull
+              request</b>, even though that name is not a real link to the file</td></tr>
+      <tr><td><b>Markdown Text Viewer (pick a file…)</b></td>
+          <td>anywhere on a GitHub / kintone page that links to a document — straight to the 📚 list</td></tr>
+      <tr><td><b>Git Markdown Viewer</b></td>
+          <td>a “Files changed” page that really changes a <code>.md</code> file</td></tr>
+      <tr><td><b>Copy PBI Contents</b></td><td>a kintone app page</td></tr>
+      <tr><td><b>Copy Schedule comment</b></td><td>a Garoon event detail page</td></tr>
+      <tr><td><b>Copy Schedule Sprint</b></td><td>the Garoon portal / top page</td></tr>
+    </table>
+    <div class="note">
+      <b>Why a file name on a pull request still works.</b> That name is not a link to the file — clicking it only
+      scrolls the page to the diff. G&amp;K Tools still works out <b>which file you right-clicked</b> and opens that
+      one, at the version the pull request proposes. And when it cannot be certain, it shows you the list instead
+      of guessing.
+    </div>
+
+    <div class="cta">
+      <h2>Five tools, one install, no setup.</h2>
+      <p class="pitch">Install it once and each tool appears only where it is useful — the toolbar popup and the
+         right-click menu. Nothing to configure, no account, nothing sent anywhere.</p>
+      <p class="sub2">The download sits at the <a href="#top-download">top of this page</a>. Questions go to
+         <a href="https://bozuman.cybozu.com/k/#/people/user/tuyen-nguyen" target="_blank" rel="noopener noreferrer">tuyen-nguyen</a>
+         — or read <code>README.md</code> in the repository if you would rather build it yourself.</p>
+    </div>
+
+    <footer>
+      G&amp;K Tools · Author:
+      <a href="https://bozuman.cybozu.com/k/#/people/user/tuyen-nguyen" target="_blank" rel="noopener noreferrer">tuyen-nguyen</a>
+    </footer>
+  </div>
+</div>
+
+<script>
+// Click any illustration to see it full-screen. The pictures are inline SVG, so a
+// clone scales losslessly — no second copy of the artwork to keep in sync.
+(function () {
+  var open = null;
+
+  function close() {
+    if (!open) return;
+    open.remove();
+    open = null;
+    document.body.style.removeProperty('overflow');
+  }
+
+  function show(svg) {
+    close();
+    var box = document.createElement('div');
+    box.className = 'zoom';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', svg.getAttribute('aria-label') || 'Illustration, enlarged');
+    var big = svg.cloneNode(true);
+    big.removeAttribute('class');           // drop .shot so it is not clickable-in-a-clone
+    big.style.width = 'min(96vw, ' + (svg.viewBox.baseVal.width * 2.2) + 'px)';
+    box.appendChild(big);
+    var hint = document.createElement('p');
+    hint.className = 'zoom-hint';
+    hint.textContent = 'Click anywhere or press Esc to close';
+    box.appendChild(hint);
+    box.addEventListener('click', close);
+    document.body.appendChild(box);
+    document.body.style.overflow = 'hidden';
+    open = box;
+  }
+
+  document.addEventListener('click', function (e) {
+    var svg = e.target.closest && e.target.closest('svg.shot');
+    if (svg) show(svg);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+  });
+})();
+</script>
+
+</body>
+</html>
