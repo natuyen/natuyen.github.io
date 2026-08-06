@@ -5,6 +5,7 @@
     src: local('JetBrains Mono'), local('SF Mono'), local('Menlo'), local('Consolas');
   }
 
+  /* ── Classic theme (dark navy / warm paper) — DEFAULT ── */
   :root {
     --ink: #1E2030;
     --ink-mid: #4A4D5E;
@@ -13,15 +14,84 @@
     --card: #FFFFFF;
     --border: #DDDCE0;
     --accent: #3B6B9A;
+    --accent-hover: #2E5A85;
     --accent-light: #E8F0F8;
     --drag-over: #D4E4F2;
+    --chip: #F0EfED;
     --sprint-head: #2D3047;
+    --sprint-head-hover: #363A52;
     --sprint-head-text: #fff;
+    --salmon: #8B8EA0;
+    --salmon-hover: #7D8093;
+    --salmon-text: #fff;
     --sp-badge: #6B6E7B;
+    --success: #1A7F37;
     --danger: #C44D4D;
-    --mono: 'JB Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
-    --body: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    /* header chrome — dark bar, light controls */
+    --header-bg: var(--sprint-head);
+    --header-fg: #fff;
+    --header-border: transparent;
+    --header-muted: rgba(255,255,255,0.5);
+    --ghost-bg: rgba(255,255,255,0.1);
+    --ghost-fg: rgba(255,255,255,0.75);
+    --ghost-border: rgba(255,255,255,0.13);
+    --ghost-bg-hover: rgba(255,255,255,0.18);
+    --ghost-fg-hover: #fff;
+    --field-bg: rgba(255,255,255,0.1);
+    --field-fg: #fff;
+    --field-border: rgba(255,255,255,0.3);
+    --indicator-ok: #7ECBA1;
+    /* sprint / row chrome */
+    --grp-btn: rgba(255,255,255,0.4);
+    --sprint-sp-bg: rgba(255,255,255,0.13);
+    --unassigned-sp-bg: rgba(255,255,255,0.13);
+    --row-border: #F2F1EF;
+    --row-hover: #F8F7F5;
+    --mono: ui-monospace, SFMono-Regular, 'JB Mono', Menlo, Consolas, monospace;
+    --body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', Meiryo, sans-serif;
     --left-w: 420px;
+  }
+
+  /* ── Light theme (GTM-21335 impact-list palette) ── */
+  :root[data-theme="light"] {
+    --ink: #0F1319;
+    --ink-mid: #2B313C;
+    --ink-light: #4E5563;
+    --surface: #F7F8FA;
+    --card: #FFFFFF;
+    --border: #D6DBE1;
+    --accent: #2F5EA8;
+    --accent-hover: #244C87;
+    --accent-light: #E8F0FE;
+    --drag-over: #C3D7FB;
+    --chip: #F0F2F5;
+    --sprint-head: #C3D7FB;
+    --sprint-head-hover: #B2CBF7;
+    --sprint-head-text: #1F2937;
+    --salmon: #F5C6C0;
+    --salmon-hover: #EFB4AC;
+    --salmon-text: #7A271A;
+    --sp-badge: #667085;
+    --success: #087443;
+    --danger: #B42318;
+    --header-bg: var(--card);
+    --header-fg: var(--ink);
+    --header-border: var(--border);
+    --header-muted: var(--ink-mid);
+    --ghost-bg: #F2F4F7;
+    --ghost-fg: var(--ink-mid);
+    --ghost-border: var(--border);
+    --ghost-bg-hover: #E4E7EC;
+    --ghost-fg-hover: var(--ink);
+    --field-bg: var(--surface);
+    --field-fg: var(--ink);
+    --field-border: var(--border);
+    --indicator-ok: var(--success);
+    --grp-btn: rgba(31,41,55,0.5);
+    --sprint-sp-bg: rgba(31,41,55,0.1);
+    --unassigned-sp-bg: rgba(122,39,26,0.14);
+    --row-border: #EAECEF;
+    --row-hover: #EEF3FF;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,8 +110,9 @@
 
   /* ── Header ── */
   .header {
-    background: var(--sprint-head);
-    color: #fff;
+    background: var(--header-bg);
+    color: var(--header-fg);
+    border-bottom: 1px solid var(--header-border);
     padding: 14px 22px;
     display: flex;
     align-items: center;
@@ -51,8 +122,8 @@
   }
   .header h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; }
   .header h1:hover { opacity: 0.8; }
-  .title-edit { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 15px; font-weight: 600; font-family: var(--body); padding: 2px 8px; border-radius: 4px; outline: none; width: 300px; }
-  .header-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+  .title-edit { background: var(--field-bg); border: 1px solid var(--field-border); color: var(--field-fg); font-size: 15px; font-weight: 600; font-family: var(--body); padding: 2px 8px; border-radius: 4px; outline: none; width: 300px; }
+  .header-sub { font-size: 11px; color: var(--header-muted); margin-top: 1px; }
   .header-actions { display: flex; gap: 8px; align-items: center; }
 
   .btn {
@@ -61,12 +132,12 @@
     transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px;
   }
   .btn-save { background: var(--accent); color: #fff; }
-  .btn-save:hover { background: #2E5A85; }
+  .btn-save:hover { background: var(--accent-hover); }
   .btn-ghost {
-    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75);
-    border: 1px solid rgba(255,255,255,0.13);
+    background: var(--ghost-bg); color: var(--ghost-fg);
+    border: 1px solid var(--ghost-border);
   }
-  .btn-ghost:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  .btn-ghost:hover { background: var(--ghost-bg-hover); color: var(--ghost-fg-hover); }
   .menu-parent { position: relative; display: inline-block; }
   .menu-parent .menu-drop {
     display: none; position: absolute; top: 100%; left: 0; z-index: 100;
@@ -82,12 +153,12 @@
   }
   .menu-drop-item:hover { background: var(--accent-light); color: var(--accent); }
   .title-edit-icon {
-    background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer;
+    background: none; border: none; color: var(--header-muted); cursor: pointer;
     font-size: 13px; padding: 0 4px; vertical-align: middle; line-height: 1;
   }
-  .title-edit-icon:hover { color: #fff; }
-  .save-indicator { font-size: 11px; color: rgba(255,255,255,0.45); }
-  .save-indicator.saved { color: #7ECBA1; }
+  .title-edit-icon:hover { color: var(--header-fg); }
+  .save-indicator { font-size: 11px; color: var(--header-muted); }
+  .save-indicator.saved { color: var(--indicator-ok); }
 
   /* ── Two-pane shell ── */
   .shell {
@@ -118,6 +189,13 @@
     background: var(--surface);
   }
   .stats-bar strong { color: var(--ink); font-weight: 600; }
+  .stats-unpin {
+    align-self: center;
+    font-family: var(--body); font-size: 11px; line-height: 1;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--card); color: var(--ink-mid);
+  }
+  .stats-unpin:hover { background: var(--surface); color: var(--ink); border-color: var(--accent); }
 
   .list-scroll {
     flex: 1; overflow-y: auto; overflow-x: hidden;
@@ -130,10 +208,10 @@
 
   .sprint-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 9px 16px; background: var(--sprint-head); color: #fff;
+    padding: 9px 16px; background: var(--sprint-head); color: var(--sprint-head-text);
     cursor: pointer; user-select: none; position: sticky; top: 0; z-index: 10;
   }
-  .sprint-header:hover { background: #363A52; }
+  .sprint-header:hover { background: var(--sprint-head-hover); }
 
   .sprint-title {
     font-size: 12px; font-weight: 600;
@@ -147,16 +225,31 @@
     font-size: 12px; opacity: 0.65; font-weight: 600;
   }
   .sprint-meta { display: flex; gap: 10px; align-items: center; font-size: 11px; }
-  .grp-btn { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1; opacity: 0; transition: opacity .15s; }
+  .sprint-actions { display: inline-flex; align-items: center; gap: 1px; }
+  .grp-btn { background: none; border: none; color: var(--grp-btn); cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1; opacity: 0; transition: opacity .15s; }
   .sprint-header:hover .grp-btn { opacity: 1; }
-  .grp-btn:hover { color: #fff; }
+  .grp-btn:hover { color: var(--sprint-head-text); }
+  .grp-btn-del { font-size: 18px; }
   .grp-btn-del:hover { color: var(--danger); }
+  .grp-btn.pinned { opacity: 1; }
   .sprint-sp {
     font-family: var(--mono); font-size: 11px;
-    background: rgba(255,255,255,0.13); padding: 1px 8px; border-radius: 3px;
+    background: var(--sprint-sp-bg); padding: 1px 8px; border-radius: 3px;
     font-variant-numeric: tabular-nums;
   }
   .sprint-count { opacity: 0.45; }
+
+  /* Pinned sprint — stands out clearly from the others: accent header, an
+     accent stripe down the whole block, and a soft accent wash behind its rows
+     (rows are transparent, so the group background shows through). */
+  .sprint-group.pinned { box-shadow: inset 3px 0 0 var(--accent); background: var(--accent-light); }
+  .sprint-group.pinned > .sprint-header { background: var(--accent); color: #fff; }
+  .sprint-group.pinned > .sprint-header:hover { background: var(--accent-hover); }
+  .sprint-group.pinned > .sprint-header .sprint-title { font-weight: 700; }
+  .sprint-group.pinned > .sprint-header .grp-btn { color: rgba(255,255,255,0.7); }
+  .sprint-group.pinned > .sprint-header .grp-btn:hover { color: #fff; }
+  .sprint-group.pinned > .sprint-header .grp-btn-del:hover { color: #FFC9C9; }
+  .sprint-group.pinned > .sprint-header .sprint-sp { background: rgba(255,255,255,0.25); }
 
   .pbi-list { min-height: 36px; transition: background 0.12s; }
   .sprint-group.collapsed .pbi-list { display: none; }
@@ -164,31 +257,35 @@
 
   .pbi-row {
     display: grid;
-    grid-template-columns: 22px 58px 1fr 46px 20px;
+    grid-template-columns: 22px 58px 1fr 46px;
     align-items: center; gap: 5px;
-    padding: 7px 16px; border-bottom: 1px solid #F2F1EF;
+    padding: 7px 16px; border-bottom: 1px solid var(--row-border);
     cursor: pointer; transition: background 0.1s; font-size: 12px;
   }
   .pbi-row:last-child { border-bottom: none; }
-  .pbi-row:hover { background: #F8F7F5; }
+  .pbi-row:hover { background: var(--row-hover); }
   .pbi-row.selected { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 13px; }
+  .pbi-row.selected .pbi-name { font-weight: 700; }
+  /* Sprint that holds the PBI being viewed */
+  .sprint-group.has-selected > .sprint-header { box-shadow: inset 3px 0 0 var(--accent); }
+  .sprint-group.has-selected > .sprint-header .sprint-title { font-weight: 700; }
   .pbi-row.dragging { opacity: 0.35; }
 
   .pbi-handle { color: var(--ink-light); font-size: 12px; cursor: grab; text-align: center; line-height: 1; }
   .pbi-id { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--accent); white-space: nowrap; }
   .pbi-name {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    color: var(--ink); font-size: 12px; line-height: 1.35;
+    color: var(--ink); font-size: 12px; font-weight: 500; line-height: 1.35;
     display: flex; align-items: center; gap: 4px; min-width: 0;
   }
   .pbi-sp {
     font-family: var(--mono); font-size: 10px; font-weight: 600;
-    color: var(--sp-badge); background: #F0EfED; padding: 1px 6px;
+    color: var(--sp-badge); background: var(--chip); padding: 1px 6px;
     border-radius: 3px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap;
   }
   .pbi-rm {
     background: none; border: none; color: var(--ink-light); cursor: pointer;
-    font-size: 14px; padding: 0; line-height: 1; opacity: 0; transition: opacity 0.12s;
+    font-size: 18px; padding: 0 2px; line-height: 1; opacity: 0; transition: opacity 0.12s;
     border-radius: 3px;
   }
   .pbi-row:hover .pbi-rm { opacity: 1; }
@@ -199,6 +296,14 @@
   }
   .pbi-row:hover .pbi-move { opacity: 1; }
   .pbi-move:hover { color: var(--accent); }
+  .pbi-pin {
+    background: none; border: none; cursor: pointer;
+    font-size: 11px; padding: 0; line-height: 1; opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .pbi-row:hover .pbi-pin { opacity: 0.65; }
+  .pbi-pin:hover { opacity: 1; }
+  .pbi-pin.pinned { opacity: 1; }
   .move-menu {
     position: fixed; z-index: 200; background: var(--card); border: 1px solid var(--border);
     border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 160px;
@@ -211,7 +316,9 @@
   .move-menu-item:hover { background: var(--accent-light); color: var(--accent); }
   .move-menu-item.disabled { color: var(--ink-light); pointer-events: none; }
 
-  .unassigned-section .sprint-header { background: var(--ink-light); }
+  .unassigned-section .sprint-header { background: var(--salmon); color: var(--salmon-text); }
+  .unassigned-section .sprint-header:hover { background: var(--salmon-hover); }
+  .unassigned-section .sprint-sp { background: var(--unassigned-sp-bg); }
 
   /* ── Resize handle ── */
   .resize-handle {
@@ -249,7 +356,7 @@
   }
   .detail-pbi-sp {
     font-family: var(--mono); font-size: 11px; font-weight: 600;
-    color: var(--sp-badge); background: #F0EfED; padding: 2px 10px;
+    color: var(--sp-badge); background: var(--chip); padding: 2px 10px;
     border-radius: 4px; font-variant-numeric: tabular-nums;
   }
   .detail-sprint-tag {
@@ -293,7 +400,7 @@
   .detail-desc li { margin-bottom: 4px; }
   .detail-desc code {
     font-family: var(--mono); font-size: 11px;
-    background: #F0EfED; padding: 1px 6px; border-radius: 3px;
+    background: var(--chip); padding: 1px 6px; border-radius: 3px;
     color: var(--ink); word-break: break-all;
   }
   .detail-coa {
@@ -330,7 +437,7 @@
   }
   .edit-input:focus, .edit-textarea:focus {
     outline: none; border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59,107,154,0.12);
+    box-shadow: 0 0 0 3px rgba(59,110,165,0.15);
   }
   .edit-textarea {
     font-family: var(--mono); font-size: 12px; line-height: 1.7;
@@ -350,7 +457,7 @@
     background: var(--accent); color: #fff; cursor: pointer;
     transition: background 0.12s;
   }
-  .edit-save-btn:hover { background: #2E5A85; }
+  .edit-save-btn:hover { background: var(--accent-hover); }
   .edit-cancel-btn {
     font-family: var(--body); font-size: 12px; font-weight: 500;
     padding: 7px 16px; border-radius: 6px;
@@ -363,7 +470,7 @@
   .toast {
     position: fixed; bottom: 20px; left: 50%;
     transform: translateX(-50%) translateY(70px);
-    background: var(--sprint-head); color: #fff;
+    background: var(--ink); color: #fff;
     padding: 8px 18px; border-radius: 7px;
     font-size: 12px; font-weight: 500;
     box-shadow: 0 6px 20px rgba(0,0,0,0.18);
@@ -407,7 +514,7 @@
   }
   .btn-modal:hover { background: var(--surface); }
   .btn-modal-primary { background: var(--accent); color: #fff; border: none; }
-  .btn-modal-primary:hover { background: #2E5A85; }
+  .btn-modal-primary:hover { background: var(--accent-hover); }
   .btn-modal-primary:disabled { opacity: 0.35; cursor: default; }
   .btn-modal-primary:disabled:hover { background: var(--accent); }
 
@@ -415,7 +522,7 @@
     font-size: 12px; color: var(--ink-mid); margin-bottom: 10px; line-height: 1.5;
   }
   .import-hint code {
-    font-family: var(--mono); font-size: 11px; background: #F0EfED;
+    font-family: var(--mono); font-size: 11px; background: var(--chip);
     padding: 1px 5px; border-radius: 3px;
   }
   .drop-zone {
@@ -437,7 +544,7 @@
   .import-preview strong { color: var(--ink); }
   .import-preview .import-ok { color: var(--accent); }
   .import-preview .import-warn { color: #C48A2D; }
-  .import-preview .import-new { color: #3A8A5C; }
+  .import-preview .import-new { color: var(--success); }
 
   /* ── Mobile ── */
   @media (max-width: 700px) {
@@ -446,7 +553,7 @@
     .shell.has-detail .left-pane { flex: 0 0 45vh !important; max-width: 100% !important; }
     .resize-handle { display: none; }
     .right-pane { min-height: 0; }
-    .pbi-row { grid-template-columns: 20px 50px 1fr 36px 18px; }
+    .pbi-row { grid-template-columns: 20px 50px 1fr 36px; }
     .pbi-rm { display: none; }
     .sprint-focus { display: none; }
     .detail-head { padding: 16px 18px 12px; }
@@ -462,7 +569,8 @@
     <div class="header-sub">Drag to reorder &middot; Click to view detail</div>
   </div>
   <div class="header-actions">
-    <input type="text" id="filterInput" placeholder="Filter PBI..." oninput="applyFilter(this.value)" style="padding:3px 10px;font-size:11px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;width:150px;background:rgba(255,255,255,0.1);color:#fff;font-family:var(--body);outline:none;">
+    <label for="themeSelect" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--header-muted);cursor:pointer;">Theme <select id="themeSelect" onchange="setTheme(this.value)" style="font-size:11px;padding:2px 6px;border:1px solid var(--field-border);border-radius:4px;background:var(--field-bg);color:var(--field-fg);font-family:var(--body);outline:none;cursor:pointer;"><option value="light">Light</option><option value="classic">Classic</option></select></label>
+    <input type="text" id="filterInput" placeholder="Filter PBI..." oninput="applyFilter(this.value)" style="padding:3px 10px;font-size:11px;border:1px solid var(--field-border);border-radius:4px;width:150px;background:var(--field-bg);color:var(--field-fg);font-family:var(--body);outline:none;"><button id="filterClear" onclick="clearFilterAndRender()" title="Clear filter" style="display:none;font-size:14px;line-height:1;padding:2px 8px;border:1px solid var(--field-border);border-radius:4px;background:var(--field-bg);color:var(--header-muted);cursor:pointer;">&times;</button>
     <span class="save-indicator" id="saveIndicator"></span>
     <button class="btn btn-ghost" onclick="addGroup()">+ Group</button>
     <button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button>
@@ -473,13 +581,13 @@
         <button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button>
         <button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button>
         <button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button>
-        <button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export Full Board with embedded data</button>
+        <button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export HTML Board with embedded data</button>
       </div>
     </div>
     <button class="btn btn-ghost" onclick="resetOrder()">Reset</button>
     <button class="btn btn-save" onclick="saveOrder()">Save into Browser</button>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--header-muted);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--header-muted);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label>
   </div>
 </div>
 
@@ -498,19 +606,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
-<div class="modal-overlay" id="exportOverlay" onclick="if(event.target===this)closeExport()">
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Export Sprint Plan">
-    <h2>Export Sprint Plan</h2>
-    <div class="modal-body">
-      <textarea id="exportText" readonly></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-modal" onclick="closeExport()">Close</button>
-      <button class="btn-modal btn-modal-primary" onclick="copyExport()">Copy</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal-overlay" id="importOverlay" onclick="if(event.target===this)closeImport()">
   <div class="modal" style="max-width:780px;" role="dialog" aria-modal="true" aria-label="Import .md raw">
@@ -562,6 +657,9 @@ const EDITS_KEY = "pbi-board-edits-v3";
 const TITLE_KEY = "pbi-board-title-v3";
 const DATA_KEY = "pbi-board-data-v3";
 const VERSION_KEY = "pbi-board-version-v3";
+const THEME_KEY = "pbi-board-theme";
+const PINS_KEY = "pbi-board-pins-v3";
+const TOOL_VERSION = "1.8"; // app version (shown in the header sub-line; keep in sync with CLAUDE.md history)
 
 function loadData() {
   try {
@@ -582,7 +680,9 @@ function saveData() {
 
 let state = loadState();
 let edits = loadEdits();
+let pinnedPbis = loadPins();
 let currentVersion = null;
+let currentTheme = 'classic';
 let selectedId = null;
 let editing = false;
 let draggedPbiId = null;
@@ -599,6 +699,13 @@ function loadEdits() {
   return {};
 }
 function saveEdits() { localStorage.setItem(EDITS_KEY, JSON.stringify(edits)); }
+// Pinned PBI ids (a Set). Pinned PBIs — and every PBI inside a pinned sprint
+// (state[i].pinned) — stay visible even when a filter would otherwise hide them.
+function loadPins() {
+  try { const r = localStorage.getItem(PINS_KEY); if (r) return new Set(JSON.parse(r)); } catch(e) {}
+  return new Set([]/*PINS_DATA*/);
+}
+function savePins() { localStorage.setItem(PINS_KEY, JSON.stringify([...pinnedPbis])); }
 
 function getPbi(id) { return PBIS.find(p => p.id === id); }
 function getEditedPbi(id) {
@@ -660,11 +767,22 @@ function pbiMatchesFilter(id) {
     || p.summary.toLowerCase().includes(q)
     || String(p.sp) === q;
 }
+// A PBI is shown when there's no filter, it matches, or it's pinned. Pinned
+// sprints (checked in renderList) additionally keep all their PBIs visible.
+function pbiVisible(id) {
+  return pinnedPbis.has(id) || pbiMatchesFilter(id);
+}
 
 // ── Search / Filter ──
 function applyFilter(q) {
   filterQuery = q.trim();
+  updateFilterClear();
   renderList();
+}
+// Show the quick-clear (×) button only while a filter is active.
+function updateFilterClear() {
+  const btn = document.getElementById('filterClear');
+  if (btn) btn.style.display = filterQuery ? '' : 'none';
 }
 // Clear the active filter and its input (called after import/reset so a stale
 // filter can't hide the freshly loaded PBIs).
@@ -672,23 +790,32 @@ function clearFilter() {
   filterQuery = '';
   const inp = document.getElementById('filterInput');
   if (inp) inp.value = '';
+  updateFilterClear();
+}
+// Quick-clear button handler: clear, re-render, and refocus the filter input.
+function clearFilterAndRender() {
+  clearFilter();
+  renderList();
+  const inp = document.getElementById('filterInput');
+  if (inp) inp.focus();
 }
 
 // ── Save / Reset ──
 function saveOrder() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  saveEdits(); saveData();
+  saveEdits(); saveData(); savePins();
   showToast("Saved"); updateSaveIndicator(true);
 }
 function resetOrder() {
   if (!confirm("Clear all data? You will need to import a .md file again.")) return;
   PBIS.length = 0;
   Object.keys(DET).forEach(k => delete DET[k]);
-  state = []; edits = {};
+  state = []; edits = {}; pinnedPbis.clear();
   clearFilter();
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(EDITS_KEY);
   localStorage.removeItem(DATA_KEY);
+  localStorage.removeItem(PINS_KEY);
   setVersion(null);
   selectedId = null; editing = false;
   updateShell(); renderList(); renderDetail();
@@ -707,7 +834,7 @@ function toggleVersionControl(on) {
 }
 function autoSaveNow() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  saveEdits(); saveData();
+  saveEdits(); saveData(); savePins();
 }
 function updateSaveIndicator(s) {
   const el = document.getElementById("saveIndicator");
@@ -724,6 +851,28 @@ function showToast(m) {
   setTimeout(() => el.classList.remove("show"), 1600);
 }
 
+// ── Pin (keep visible under filter) ──
+function togglePinPbi(id) {
+  if (pinnedPbis.has(id)) pinnedPbis.delete(id); else pinnedPbis.add(id);
+  savePins();
+  renderList(); renderDetail();
+  updateSaveIndicator(false);
+}
+function togglePinSprint(si) {
+  state[si].pinned = !state[si].pinned;
+  renderList();
+  updateSaveIndicator(false);
+}
+function unpinAll() {
+  if (!pinnedPbis.size && !state.some(s => s.pinned)) return;
+  pinnedPbis.clear();
+  state.forEach(s => { if (s.pinned) s.pinned = false; });
+  savePins();
+  renderList();
+  updateSaveIndicator(false);
+  showToast('All pins removed');
+}
+
 // ── Render list (left pane) ──
 function renderList() {
   const totalSP = PBIS.reduce((s,p) => s + getEditedPbi(p.id).sp, 0);
@@ -732,29 +881,33 @@ function renderList() {
 
   const allIds = PBIS.map(p => p.id);
   const matchedCount = filterQuery ? allIds.filter(id => pbiMatchesFilter(id)).length : PBIS.length;
+  const pinCount = pinnedPbis.size + state.filter(s => s.pinned).length;
 
   document.getElementById("statsBar").innerHTML =
     `<span><strong>${filterQuery ? matchedCount + ' / ' : ''}${PBIS.length}</strong> PBIs</span>` +
     `<span><strong>${totalSP}</strong> SP</span>` +
     `<span><strong>${state.length}</strong> sprints</span>` +
-    (unas.length ? `<span><strong>${unas.length}</strong> unassigned</span>` : '');
+    (unas.length ? `<span><strong>${unas.length}</strong> unassigned</span>` : '') +
+    (pinCount ? `<button class="stats-unpin" onclick="unpinAll()" title="Remove all pins">📌 Unpin all (${pinCount})</button>` : '');
 
   let h = '';
   state.forEach((sp, si) => {
     const pts = sp.pbiIds.reduce((s,id) => s + (getEditedPbi(id)?.sp||0), 0);
-    h += `<div class="sprint-group" data-si="${si}" draggable="true" ondragstart="grpDragStart(event,${si})" ondragend="grpDragEnd(event)" ondragover="grpDragOver(event,${si})" ondragleave="grpDragLeave(event)" ondrop="grpDrop(event,${si})">
+    h += `<div class="sprint-group${sp.pinned?' pinned':''}" data-si="${si}" draggable="true" ondragstart="grpDragStart(event,${si})" ondragend="grpDragEnd(event)" ondragover="grpDragOver(event,${si})" ondragleave="grpDragLeave(event)" ondrop="grpDrop(event,${si})">
       <div class="sprint-header" onclick="toggleSp(this)" ondragover="dHeaderOver(event)" ondrop="dDropHeader(event,${si})">
-        <div class="sprint-title"><span class="chevron">&#9660;</span>${esc(sp.name)}<span class="sprint-focus">${esc(sp.focus)}</span></div>
-        <div class="sprint-meta">
+        <div class="sprint-title"><span class="chevron">&#9660;</span>${esc(sp.name)}${sp.focus ? `<span class="sprint-focus">${esc(sp.focus)}</span>` : ''}<span class="sprint-actions">
+          <button class="grp-btn grp-btn-pin${sp.pinned?' pinned':''}" onclick="event.stopPropagation();togglePinSprint(${si})" title="${sp.pinned?'Unpin sprint':'Pin sprint (keep its PBIs visible when filtering)'}">📌</button>
           <button class="grp-btn" onclick="event.stopPropagation();moveGroup(${si},-1)" title="Move up">&#9650;</button>
           <button class="grp-btn" onclick="event.stopPropagation();moveGroup(${si},1)" title="Move down">&#9660;</button>
           <button class="grp-btn" onclick="event.stopPropagation();renameGroup(${si})" title="Rename">&#9998;</button>
           <button class="grp-btn grp-btn-del" onclick="event.stopPropagation();deleteGroup(${si})" title="Delete group">&times;</button>
+        </span></div>
+        <div class="sprint-meta">
           <span class="sprint-count">${sp.pbiIds.length}</span><span class="sprint-sp">${pts} SP</span>
         </div>
       </div>
       <div class="pbi-list" data-si="${si}" ondragover="dOver(event,${si})" ondragleave="dLeave(event)" ondrop="dDrop(event,${si})">`;
-    sp.pbiIds.forEach((pid,pi) => { const p = getPbi(pid); if(p && pbiMatchesFilter(pid)) h += pbiRow(p,si,pi); });
+    sp.pbiIds.forEach((pid,pi) => { const p = getPbi(pid); if(p && (sp.pinned || pbiVisible(pid))) h += pbiRow(p,si,pi); });
     h += `</div></div>`;
   });
 
@@ -766,34 +919,43 @@ function renderList() {
         <div class="sprint-meta"><span class="sprint-count">${unas.length}</span><span class="sprint-sp">${usp} SP</span></div>
       </div>
       <div class="pbi-list" data-si="-1" ondragover="dOver(event,-1)" ondragleave="dLeave(event)" ondrop="dDrop(event,-1)">`;
-    unas.filter(p => pbiMatchesFilter(p.id)).forEach((p,i) => { h += pbiRow(p,-1,i); });
+    unas.filter(p => pbiVisible(p.id)).forEach((p,i) => { h += pbiRow(p,-1,i); });
     h += `</div></div>`;
   }
 
   document.getElementById("listScroll").innerHTML = h;
+  syncSelectionHighlight();
+}
+
+// Highlight the viewed PBI's row (its title) and the sprint group that holds it.
+// Centralised so the lightweight selection paths (select/nav/close) and full
+// re-renders all stay in sync.
+function syncSelectionHighlight() {
+  document.querySelectorAll('.pbi-row').forEach(r => r.classList.toggle('selected', +r.dataset.pid === selectedId));
+  document.querySelectorAll('.sprint-group').forEach(g => g.classList.toggle('has-selected', !!g.querySelector('.pbi-row.selected')));
 }
 
 function pbiRow(origP, si, pi) {
   const p = getEditedPbi(origP.id);
   const sel = p.id === selectedId ? ' selected' : '';
-  return `<div class="pbi-row${sel}" data-pid="${p.id}" draggable="true"
+  const pinned = pinnedPbis.has(p.id);
+  return `<div class="pbi-row${sel}${pinned?' pinned':''}" data-pid="${p.id}" draggable="true"
     onclick="selectPbi(event,${p.id})"
     ondragstart="dStart(event,${p.id},${si})" ondragend="dEnd(event)"
     ${si>=0 ? `ondragover="dItemOver(event)"` : ''}>
     <span class="pbi-handle">⠿</span>
     <span class="pbi-id">PBI-${p.id}</span>
-    <span class="pbi-name" title="${esc(p.summary)}">${esc(p.summary)}<button class="pbi-move" onclick="showMoveMenu(event,${p.id},${si})" title="Move to...">&#8674;</button></span>
+    <span class="pbi-name" title="${esc(p.summary)}">${esc(p.summary)}<button class="pbi-pin${pinned?' pinned':''}" onclick="togglePinPbi(${p.id})" title="${pinned?'Unpin':'Pin (keep visible when filtering)'}">📌</button><button class="pbi-move" onclick="showMoveMenu(event,${p.id},${si})" title="Move to...">&#8674;</button>${si>=0 ? `<button class="pbi-rm" onclick="rmPbi(event,${si},${pi})" title="Remove from sprint">&times;</button>` : ''}</span>
     <span class="pbi-sp">${p.sp} SP</span>
-    ${si>=0 ? `<button class="pbi-rm" onclick="rmPbi(event,${si},${pi})" title="Unassign">&times;</button>` : '<span></span>'}
   </div>`;
 }
 
 function selectPbi(e, id) {
   if (didDrag) return;
-  if (e.target.closest('.pbi-rm') || e.target.closest('.pbi-move')) return;
+  if (e.target.closest('.pbi-rm') || e.target.closest('.pbi-move') || e.target.closest('.pbi-pin')) return;
   selectedId = id;
   editing = false;
-  document.querySelectorAll('.pbi-row').forEach(r => r.classList.toggle('selected', +r.dataset.pid === id));
+  syncSelectionHighlight();
   updateShell();
   renderDetail();
 }
@@ -801,7 +963,7 @@ function selectPbi(e, id) {
 function closeDetail() {
   selectedId = null;
   editing = false;
-  document.querySelectorAll('.pbi-row').forEach(r => r.classList.remove('selected'));
+  syncSelectionHighlight();
   document.getElementById('leftPane').style.flex = '';
   updateShell();
   renderDetail();
@@ -824,6 +986,8 @@ function renderDetail() {
   const sprint = findSprintFor(selectedId);
   const allIds = getAllIds();
   const idx = allIds.indexOf(selectedId);
+  const pinned = pinnedPbis.has(selectedId);
+  const pinBtn = `<button class="detail-edit-btn${pinned?' active':''}" onclick="togglePinPbi(${p.id})" title="${pinned?'Unpin':'Pin (keep visible when filtering)'}">📌</button>`;
 
   if (editing) {
     const descText = (det.d || []).map(d => d.replace(/<code>/g,'`').replace(/<\/code>/g,'`').replace(/&amp;/g,'&')).join('\n');
@@ -833,7 +997,7 @@ function renderDetail() {
           <span class="detail-pbi-id">PBI-${p.id}</span>
           <span class="detail-sprint-tag">${esc(sprint)}</span>
           <div class="detail-toolbar">
-            <button class="detail-edit-btn active" onclick="toggleEdit()" title="Editing">&#9998;</button>
+            ${pinBtn}<button class="detail-edit-btn" onclick="copyPbiRef(${p.id})" title="Copy &quot;PBI-${p.id}: title&quot;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <button class="detail-close-btn" onclick="closeDetail()" title="Close">&times;</button>
           </div>
         </div>
@@ -843,18 +1007,16 @@ function renderDetail() {
           <button class="edit-save-btn" onclick="saveEdit()">Save changes</button>
           <button class="edit-cancel-btn" onclick="toggleEdit()">Cancel</button>
         </div>
-        <div style="display:flex;gap:14px;align-items:flex-end;">
-          <div class="edit-field-group" style="flex:0 0 auto;margin-bottom:18px;">
-            <div class="edit-field-label">Group</div>
-            <select class="edit-input" id="editGroup">
-              <option value="-1" ${findSprintIndex(selectedId)===-1?'selected':''}>Unassigned</option>
-              ${state.map((s,i) => `<option value="${i}" ${findSprintIndex(selectedId)===i?'selected':''}>${esc(s.name)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="edit-field-group" style="flex:1;min-width:0;margin-bottom:18px;">
-            <div class="edit-field-label">Title</div>
-            <input class="edit-input" id="editSummary" value="${esc(p.summary)}">
-          </div>
+        <div class="edit-field-group">
+          <div class="edit-field-label">Group</div>
+          <select class="edit-input" id="editGroup">
+            <option value="-1" ${findSprintIndex(selectedId)===-1?'selected':''}>Unassigned</option>
+            ${state.map((s,i) => `<option value="${i}" ${findSprintIndex(selectedId)===i?'selected':''}>${esc(s.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="edit-field-group">
+          <div class="edit-field-label">Title</div>
+          <input class="edit-input" id="editSummary" value="${esc(p.summary)}">
         </div>
         <div class="edit-field-group">
           <div class="edit-field-label">Summary</div>
@@ -901,6 +1063,7 @@ function renderDetail() {
         <span class="detail-pbi-sp">${p.sp} SP</span>
         <span class="detail-sprint-tag">${esc(sprint)}</span>
         <div class="detail-toolbar">
+          ${pinBtn}<button class="detail-edit-btn" onclick="copyPbiRef(${p.id})" title="Copy &quot;PBI-${p.id}: title&quot;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           <button class="detail-edit-btn" onclick="toggleEdit()" title="Edit">&#9998;</button>
           <button class="detail-edit-btn" onclick="duplicatePbi(${p.id})" title="Duplicate">&#10064;</button>
           <button class="detail-edit-btn" onclick="deletePbi(${p.id})" title="Delete" style="color:var(--danger);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
@@ -949,7 +1112,7 @@ function navPbi(dir) {
   if (i >= 0 && i < ids.length) {
     selectedId = ids[i];
     editing = false;
-    document.querySelectorAll('.pbi-row').forEach(r => r.classList.toggle('selected', +r.dataset.pid === selectedId));
+    syncSelectionHighlight();
     const row = document.querySelector(`.pbi-row[data-pid="${selectedId}"]`);
     if (row) row.scrollIntoView({ block: 'nearest' });
     updateShell();
@@ -987,9 +1150,9 @@ function dDropHeader(e, tsi) {
   }
   renderList(); renderDetail(); updateSaveIndicator(false);
 }
-function dOver(e, si) { e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
+function dOver(e, si) { if (draggedPbiId === null) return; e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
 function dLeave(e) { const l=e.currentTarget; if(!l.contains(e.relatedTarget)) l.classList.remove('drag-over'); }
-function dItemOver(e) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect='move'; e.currentTarget.closest('.pbi-list').classList.add('drag-over'); }
+function dItemOver(e) { if (draggedPbiId === null) return; e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect='move'; e.currentTarget.closest('.pbi-list').classList.add('drag-over'); }
 
 function dDrop(e, tsi) {
   e.preventDefault();
@@ -1069,9 +1232,9 @@ function versionForFilename(v) {
   return v.replace(/ /g, '_').replace(/:/g, '');
 }
 function updateVersionDisplay() {
-  const base = 'Drag to reorder &middot; Click to view detail';
+  const base = 'PBI Board v' + TOOL_VERSION + ' &middot; Drag to reorder &middot; Click to view detail';
   document.querySelectorAll('.header-sub').forEach(el => {
-    el.innerHTML = base + (currentVersion ? ' &middot; v' + esc(currentVersion) : '');
+    el.innerHTML = base + (currentVersion ? ' &middot; doc ' + esc(currentVersion) : '');
   });
 }
 function setVersion(v) {
@@ -1084,6 +1247,24 @@ function loadVersion() {
   const saved = localStorage.getItem(VERSION_KEY);
   currentVersion = saved || null/*VERSION_DATA*/;
   updateVersionDisplay();
+}
+
+// ── Theme ──
+// 'classic' (default) or 'light'; applied via the data-theme attribute so the
+// whole palette swaps through the CSS variable sets.
+function applyTheme(t) {
+  currentTheme = t === 'light' ? 'light' : 'classic';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const sel = document.getElementById('themeSelect');
+  if (sel) sel.value = currentTheme;
+}
+function setTheme(t) {
+  applyTheme(t);
+  localStorage.setItem(THEME_KEY, currentTheme);
+}
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  applyTheme(saved || 'classic'/*THEME_DATA*/);
 }
 
 // ── Export ──
@@ -1144,34 +1325,30 @@ function buildFullMarkdown(version) {
   return md;
 }
 
-function exportMarkdown() {
-  let md = "## Sprint Plan\n\n| Sprint | PBIs | Total SP | Focus |\n|--------|------|----------|-------|\n";
-  state.forEach(sp => {
-    const pts = sp.pbiIds.reduce((s,id)=>s+(getEditedPbi(id)?.sp||0),0);
-    md += `| ${sp.name} | ${sp.pbiIds.map(id=>'PBI-'+id).join(', ')} | ${pts} | ${sp.focus || '—'} |\n`;
-  });
-  const assigned = new Set(state.flatMap(s=>s.pbiIds));
-  const unas = PBIS.filter(p=>!assigned.has(p.id));
-  if(unas.length) {
-    const usp = unas.reduce((s,p)=>s+(getEditedPbi(p.id)?.sp||0),0);
-    md += `| Unassigned | ${unas.map(p=>'PBI-'+p.id).join(', ')} | ${usp} | — |\n`;
-  }
-  document.getElementById("exportText").value = md;
-  document.getElementById("exportOverlay").classList.add("show");
-}
-function closeExport() { document.getElementById("exportOverlay").classList.remove("show"); }
-function copyExport() {
-  const ta = document.getElementById("exportText");
-  const text = ta.value;
-  const done = () => { showToast("Copied"); closeExport(); };
-  const fallback = () => { ta.select(); try { document.execCommand('copy'); } catch (e) {} done(); };
+// Copy a "PBI-<id>: <title>" reference to the clipboard. In edit mode it uses
+// the live (possibly unsaved) title so it matches what the user sees.
+function copyToClipboard(text, okMsg) {
+  const done = () => showToast(okMsg);
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    ta.remove(); done();
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(done, fallback);
   } else {
     fallback();
   }
 }
-
+function copyPbiRef(id) {
+  const p = getEditedPbi(id);
+  if (!p) return;
+  const titleInput = document.getElementById('editSummary');
+  const title = (editing && titleInput) ? titleInput.value.trim() : p.summary;
+  copyToClipboard(`PBI-${id}: ${title}`, `Copied PBI-${id}`);
+}
 // ── Dropdown menus ──
 function toggleMenu(id) {
   const el = document.getElementById(id);
@@ -1356,12 +1533,13 @@ function exportFullBoard() {
   js = js.replace('[/*PBIS_DATA*/]', () => safeJson(exportPbis));
   js = js.replace('{/*DET_DATA*/}', () => safeJson(exportDet));
   js = js.replace('[]/*STATE_DATA*/', () => safeJson(exportState));
+  js = js.replace('[]/*PINS_DATA*/', () => safeJson([...pinnedPbis]));
   js = js.replace('null/*VERSION_DATA*/', () => safeJson(version));
+  js = js.replace("'classic'/*THEME_DATA*/", () => safeJson(currentTheme));
   const bodyHtml = `
-<div class="header"><div><div style="display:flex;align-items:center;gap:6px;"><h1 id="boardTitle" ondblclick="editTitle()">${esc(titleText)}</h1><button class="title-edit-icon" onclick="editTitle()" title="Edit title">&#9998;</button></div><div class="header-sub">Drag to reorder &middot; Click to view detail${version ? ' &middot; v' + esc(version) : ''}</div></div><div class="header-actions"><input type="text" id="filterInput" placeholder="Filter PBI..." oninput="applyFilter(this.value)" style="padding:3px 10px;font-size:11px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;width:150px;background:rgba(255,255,255,0.1);color:#fff;font-family:var(--body);outline:none;"><span class="save-indicator" id="saveIndicator"></span><button class="btn btn-ghost" onclick="addGroup()">+ Group</button><button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button><button class="btn btn-ghost" onclick="openSprintImport()">Import / Export Sprint Plan</button><div class="menu-parent" id="menuBoard"><button class="btn btn-ghost" onclick="toggleMenu('menuBoard')">Import / Export Full Board &#9662;</button><div class="menu-drop"><button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button><button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button><button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button><button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export Full Board with embedded data</button></div></div><button class="btn btn-ghost" onclick="resetOrder()">Reset</button><button class="btn btn-save" onclick="saveOrder()">Save into Browser</button><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label></div></div>
+<div class="header"><div><div style="display:flex;align-items:center;gap:6px;"><h1 id="boardTitle" ondblclick="editTitle()">${esc(titleText)}</h1><button class="title-edit-icon" onclick="editTitle()" title="Edit title">&#9998;</button></div><div class="header-sub">Drag to reorder &middot; Click to view detail${version ? ' &middot; v' + esc(version) : ''}</div></div><div class="header-actions"><label for="themeSelect" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--header-muted);cursor:pointer;">Theme <select id="themeSelect" onchange="setTheme(this.value)" style="font-size:11px;padding:2px 6px;border:1px solid var(--field-border);border-radius:4px;background:var(--field-bg);color:var(--field-fg);font-family:var(--body);outline:none;cursor:pointer;"><option value="light">Light</option><option value="classic">Classic</option></select></label><input type="text" id="filterInput" placeholder="Filter PBI..." oninput="applyFilter(this.value)" style="padding:3px 10px;font-size:11px;border:1px solid var(--field-border);border-radius:4px;width:150px;background:var(--field-bg);color:var(--field-fg);font-family:var(--body);outline:none;"><button id="filterClear" onclick="clearFilterAndRender()" title="Clear filter" style="display:none;font-size:14px;line-height:1;padding:2px 8px;border:1px solid var(--field-border);border-radius:4px;background:var(--field-bg);color:var(--header-muted);cursor:pointer;">&times;</button><span class="save-indicator" id="saveIndicator"></span><button class="btn btn-ghost" onclick="addGroup()">+ Group</button><button class="btn btn-ghost" onclick="addNewPbi()">+ PBI</button><button class="btn btn-ghost" onclick="openSprintImport()">Import / Export Sprint Plan</button><div class="menu-parent" id="menuBoard"><button class="btn btn-ghost" onclick="toggleMenu('menuBoard')">Import / Export Full Board &#9662;</button><div class="menu-drop"><button class="menu-drop-item" onclick="openImport();closeMenus()">Import .md raw</button><button class="menu-drop-item" onclick="downloadFullMd();closeMenus()">Export .md raw</button><button class="menu-drop-item" onclick="exportPlainText();closeMenus()">Export plain text</button><button class="menu-drop-item" onclick="exportFullBoard();closeMenus()">Export HTML Board with embedded data</button></div></div><button class="btn btn-ghost" onclick="resetOrder()">Reset</button><button class="btn btn-save" onclick="saveOrder()">Save into Browser</button><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--header-muted);cursor:pointer;"><input type="checkbox" id="autoSaveCheck" checked onchange="toggleAutoSave(this.checked)"> Auto save</label><label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--header-muted);cursor:pointer;"><input type="checkbox" id="versionCheck" checked onchange="toggleVersionControl(this.checked)"> Version</label></div></div>
 <div class="shell"><div class="left-pane" id="leftPane"><div class="stats-bar" id="statsBar"></div><div class="list-scroll" id="listScroll"></div></div><div class="resize-handle" id="resizeHandle"></div><div class="right-pane" id="rightPane"></div></div>
 <div class="toast" id="toast"></div>
-<div class="modal-overlay" id="exportOverlay" onclick="if(event.target===this)closeExport()"><div class="modal"><h2>Export Sprint Plan</h2><div class="modal-body"><textarea id="exportText" readonly></textarea></div><div class="modal-actions"><button class="btn-modal" onclick="closeExport()">Close</button><button class="btn-modal btn-modal-primary" onclick="copyExport()">Copy</button></div></div></div>
 <div class="modal-overlay" id="importOverlay" onclick="if(event.target===this)closeImport()"><div class="modal" style="max-width:780px;"><h2>Import .md raw</h2><div class="modal-body"><p class="import-hint">Drag &amp; drop a <code>.md</code> file, paste markdown content.</p><div id="dropZone" class="drop-zone" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)"><span class="drop-icon">&#128203;</span><span>Drop <code>.md</code> file here</span><button class="btn-modal" onclick="event.stopPropagation();document.getElementById('browseFile').click()" style="margin-top:8px;font-size:13px;padding:6px 16px;">Browse file...</button><input type="file" id="browseFile" accept=".md,.txt" style="display:none" onchange="browseFileSelected(this)"></div><textarea id="importText" placeholder="Paste .md content here..."></textarea><div id="importPreview"></div></div><div class="modal-actions"><button class="btn-modal" onclick="closeImport()">Cancel</button><button class="btn-modal" onclick="previewImport()">Preview</button><button class="btn-modal btn-modal-primary" id="importConfirmBtn" onclick="confirmImport()" disabled>Apply</button></div></div></div>
 <div class="modal-overlay" id="sprintImportOverlay" onclick="if(event.target===this)closeSprintImport()"><div class="modal" style="max-width:680px;"><h2>Import / Export Sprint Plan</h2><div class="modal-body"><p class="import-hint">Edit the sprint table or paste shorthand to reorder PBIs across sprints.</p><textarea id="sprintImportText" placeholder="Paste sprint reorder:&#10;| Sprint 1 | PBI-1, PBI-3 | 12 | Focus |&#10;or Sprint-1: PBI-1, PBI-3, PBI-5"></textarea><div id="sprintImportPreview" style="margin:10px 0;font-size:13px;color:var(--ink-mid);"></div></div><div class="modal-actions"><button class="btn-modal" onclick="closeSprintImport()">Cancel</button><button class="btn-modal" onclick="previewSprintImport()">Preview</button><button class="btn-modal btn-modal-primary" id="sprintImportApplyBtn" onclick="applySprintImport()" disabled>Apply</button></div></div></div>
 `;
@@ -1608,6 +1786,7 @@ function confirmImport() {
     Object.keys(DET).forEach(k => delete DET[k]);
     Object.keys(edits).forEach(k => delete edits[k]);
     state.length = 0;
+    pinnedPbis.clear();
   }
 
   // Add PBIs
@@ -1755,6 +1934,7 @@ function deletePbi(id) {
   if (pbiIdx >= 0) PBIS.splice(pbiIdx, 1);
   delete DET[id];
   delete edits[id];
+  pinnedPbis.delete(id);
   state.forEach(s => { s.pbiIds = s.pbiIds.filter(x => x !== id); });
   saveData(); saveEdits();
   if (selectedId === id) { selectedId = null; editing = false; updateShell(); }
@@ -1839,6 +2019,7 @@ function grpDragStart(e, si) {
 function grpDragEnd(e) {
   e.currentTarget.classList.remove('grp-dragging');
   document.querySelectorAll('.sprint-group').forEach(g => g.classList.remove('grp-drag-over'));
+  document.querySelectorAll('.pbi-list.drag-over').forEach(l => l.classList.remove('drag-over'));
   draggedGroupIdx = null;
 }
 function grpDragOver(e, si) {
@@ -1901,6 +2082,7 @@ function welcomeBrowseSelected(input) {
 }
 
 // ── Init ──
+loadTheme();
 const savedAutoSave = localStorage.getItem('pbi-board-autosave');
 autoSaveEnabled = savedAutoSave !== '0';
 const _autoSaveCheck = document.getElementById('autoSaveCheck');

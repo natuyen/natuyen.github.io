@@ -1,31 +1,410 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Support Tools for Work</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; background: #fafafa; }
-    h1 { font-size: 1.8rem; margin-bottom: 32px; border-bottom: 2px solid #0969da; padding-bottom: 12px; }
-    h2 { font-size: 1.3rem; margin-bottom: 12px; color: #0969da; }
-    ul { list-style: none; margin-left: 16px; }
-    ul li { padding: 6px 0; }
-    ul li::before { content: "\25B8"; margin-right: 8px; color: #0969da; }
-    a { color: #0969da; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support Tools for Work</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e;
+    --border: #d0d7de; --panel: #f6f8fa; --accent: #0969da;
+    --hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --shadow: 0 10px 34px rgba(0,0,0,.09);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e;
+      --border: #30363d; --panel: #161b22; --accent: #58a6ff;
+      --shadow: 0 10px 34px rgba(0,0,0,.5);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg); line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  .hero {
+    background: var(--hero); color: #fff;
+    text-align: center; padding: 56px 20px 48px;
+  }
+  .hero h1 {
+    font-size: 2.6rem; font-weight: 800; letter-spacing: -.03em;
+    text-shadow: 0 2px 18px rgba(0,0,0,.18); margin-bottom: 8px;
+  }
+  .hero p { font-size: 1.1rem; opacity: .85; }
+
+  .container {
+    max-width: 960px; margin: -40px auto 0; padding: 0 20px 60px;
+    display: flex; flex-direction: column; gap: 32px;
+    position: relative; z-index: 1;
+  }
+
+  .card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 16px; box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,.14); }
+
+  .card-body {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+
+  .card-text {
+    padding: 32px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .card-text .badge {
+    display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; width: fit-content;
+  }
+  .badge-ext { background: #ede9fe; color: #6d28d9; }
+  .badge-web { background: #dbeafe; color: #1e40af; }
+
+  .card-text h2 { font-size: 1.4rem; margin-bottom: 8px; }
+  .card-text p { font-size: .92rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+  .card-text .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 8px; font-size: .9rem; font-weight: 600;
+    text-decoration: none; color: #fff; background: var(--accent);
+    transition: opacity .15s; width: fit-content;
+  }
+  .card-text .btn:hover { opacity: .85; }
+
+  .card-media {
+    background: var(--panel); display: flex; align-items: center; justify-content: center;
+    padding: 24px; border-left: 1px solid var(--border); min-height: 280px;
+  }
+  .card-media svg { width: 100%; max-width: 320px; height: auto; }
+
+  .card-gallery {
+    border-top: 1px solid var(--border); background: var(--panel); padding: 24px 28px;
+  }
+  .card-gallery h3 {
+    font-size: .85rem; font-weight: 700; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .6px; margin-bottom: 16px;
+  }
+  .gallery-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .gallery-item {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; transition: box-shadow .2s;
+  }
+  .gallery-item:hover { box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+  .gallery-item svg { width: 100%; height: auto; display: block; }
+  .gallery-item .caption {
+    font-size: .78rem; color: var(--muted); margin-top: 10px; line-height: 1.4;
+  }
+  .gallery-item .caption b { color: var(--fg); }
+
+  @media (max-width: 700px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+  }
+
+  footer {
+    text-align: center; padding: 32px 20px; font-size: .8rem; color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 700px) {
+    .hero h1 { font-size: 1.8rem; }
+    .card-body { grid-template-columns: 1fr; }
+    .card-media { border-left: none; border-top: 1px solid var(--border); min-height: 200px; }
+  }
+</style>
 </head>
 <body>
-  <h1>Support Tools for Work</h1>
-  <h2>Browser Extensions</h2>
-  <ul>
-    <li><a href="browser-extension/g-k-tools/">G&amp;K Tools</a> — Read Markdown specs and their pull-request diffs as documents; copy PBIs, schedule comments and sprint hours out of Garoon &amp; kintone</li>
-  </ul>
 
-  <h2>Garoon Tools</h2>
-  <ul>
-    <li><a href="garoon/refinement/pbi-board.html">PBI Board</a> — Manage and Sort PBI for Multi-team Refinement</li>
-  </ul>
+<div class="hero">
+  <h1>Support Tools for Work</h1>
+  <p>Productivity tools to streamline your daily workflow</p>
+</div>
+
+<div class="container">
+
+  <!-- G&K Tools -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-text">
+        <span class="badge badge-ext">Browser Extension</span>
+        <h2>G&amp;K Tools</h2>
+        <p>Read Markdown specs and PR diffs as rendered documents. Copy PBIs, schedule comments and sprint hours out of Garoon &amp; Kintone — all in one click.</p>
+        <a class="btn" href="browser-extension/g-k-tools/">View &amp; Download →</a>
+      </div>
+      <div class="card-media">
+        <svg viewBox="0 0 300 268" role="img" aria-label="G&K Tools toolbar popup">
+          <defs>
+            <linearGradient id="gHero" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#667eea"/><stop offset="1" stop-color="#764ba2"/></linearGradient>
+            <linearGradient id="gKin" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+            <linearGradient id="gGar" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#059669"/><stop offset="1" stop-color="#0d9488"/></linearGradient>
+            <linearGradient id="gTool" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#d97706"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+          </defs>
+          <rect x="8" y="8" width="284" height="252" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+          <path d="M8 18a10 10 0 0 1 10-10h264a10 10 0 0 1 10 10v22H8z" fill="url(#gHero)"/>
+          <text x="22" y="29" font-size="11" font-weight="700" fill="#fff">G&amp;K Tools</text>
+          <rect x="252" y="17" width="26" height="14" rx="7" fill="rgba(255,255,255,.22)"/>
+          <text x="258" y="27" font-size="8" fill="#fff">v1.0</text>
+          <g>
+            <rect x="20" y="52" width="260" height="52" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+            <path d="M20 59a7 7 0 0 1 7-7h246a7 7 0 0 1 7 7v11H20z" fill="url(#gKin)"/>
+            <text x="30" y="65" font-size="9" font-weight="700" fill="#fff">kintone</text>
+            <rect x="28" y="76" width="244" height="13" rx="4" fill="var(--panel)" stroke="var(--border)"/>
+            <text x="33" y="85" font-size="7.5" fill="var(--muted)">Key,Summary</text>
+            <text x="30" y="99" font-size="8.5" fill="var(--fg)">📋 Copy PBI Contents</text>
+          </g>
+          <g>
+            <rect x="20" y="112" width="260" height="56" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+            <path d="M20 119a7 7 0 0 1 7-7h246a7 7 0 0 1 7 7v11H20z" fill="url(#gGar)"/>
+            <text x="30" y="125" font-size="9" font-weight="700" fill="#fff">Garoon</text>
+            <text x="30" y="144" font-size="8.5" fill="var(--fg)">💬 Copy Schedule comment</text>
+            <text x="30" y="160" font-size="8.5" fill="var(--fg)">⏱ Copy Schedule Sprint</text>
+          </g>
+          <g>
+            <rect x="20" y="176" width="260" height="56" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+            <path d="M20 183a7 7 0 0 1 7-7h246a7 7 0 0 1 7 7v11H20z" fill="url(#gTool)"/>
+            <text x="30" y="189" font-size="9" font-weight="700" fill="#fff">Tools</text>
+            <text x="30" y="208" font-size="8.5" fill="var(--fg)">📝 Markdown Text Viewer</text>
+            <text x="30" y="224" font-size="8.5" fill="var(--fg)">🔀 Git Markdown Viewer</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="card-gallery">
+      <h3>Featured Tools</h3>
+      <div class="gallery-grid">
+
+        <!-- Markdown Text Viewer -->
+        <div class="gallery-item">
+          <svg viewBox="0 0 660 330" role="img" aria-label="Markdown Text Viewer">
+            <rect x="6" y="6" width="648" height="318" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+            <path d="M6 15a9 9 0 0 1 9-9h630a9 9 0 0 1 9 9v40H6z" fill="var(--panel)"/>
+            <line x1="6" y1="55" x2="654" y2="55" stroke="var(--border)"/>
+            <rect x="16" y="17" width="18" height="18" rx="4" fill="none" stroke="var(--accent)"/>
+            <line x1="24" y1="17" x2="24" y2="35" stroke="var(--accent)"/>
+            <text x="42" y="31" font-size="11" font-weight="700" fill="var(--fg)">📝 Markdown Text Viewer</text>
+            <rect x="188" y="18" width="232" height="17" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="195" y="30" font-size="7.5" font-weight="700" fill="var(--fg)" font-family="monospace">📄 docs/spec/…/install-overview/index.md</text>
+            <rect x="426" y="18" width="16" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="430" y="30" font-size="9" fill="var(--accent)">↗</text>
+            <rect x="450" y="18" width="66" height="17" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="456" y="30" font-size="8" fill="var(--fg)">📚 2 files ▾</text>
+            <rect x="524" y="18" width="86" height="17" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="530" y="30" font-size="8" fill="var(--muted)">🔍 Search…</text>
+            <rect x="618" y="18" width="26" height="17" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="622" y="30" font-size="7.5" fill="var(--fg)">↑ Top</text>
+            <text x="16" y="72" font-size="7" font-weight="700" fill="var(--muted)" letter-spacing="1">CONTENTS</text>
+            <rect x="12" y="80" width="150" height="13" rx="3" fill="var(--panel)"/>
+            <rect x="12" y="80" width="2" height="13" fill="var(--accent)"/>
+            <text x="20" y="90" font-size="7.5" font-weight="700" fill="var(--accent)">🔷 PBI-8: Admin — Add user…</text>
+            <text x="20" y="106" font-size="7.5" fill="var(--fg)">🔷 PBI-9: Admin — Delete…</text>
+            <text x="20" y="121" font-size="7.5" fill="var(--fg)">🔷 PBI-10: Admin — Mailbox…</text>
+            <text x="20" y="136" font-size="7.5" fill="var(--fg)">🔷 PBI-11: Admin — Set default…</text>
+            <text x="20" y="151" font-size="7.5" fill="var(--fg)">🔷 PBI-12: End user — Display…</text>
+            <text x="20" y="166" font-size="7.5" fill="var(--fg)">🔷 PBI-13: End user — Mail list…</text>
+            <text x="20" y="181" font-size="7.5" fill="var(--fg)">🔷 PBI-14: End user — Preview…</text>
+            <text x="20" y="196" font-size="7.5" fill="var(--muted)">…</text>
+            <line x1="176" y1="62" x2="176" y2="316" stroke="var(--accent)" stroke-width="2"/>
+            <rect x="171" y="176" width="10" height="26" rx="5" fill="var(--bg)" stroke="var(--accent)"/>
+            <line x1="174" y1="182" x2="174" y2="196" stroke="var(--accent)"/>
+            <line x1="178" y1="182" x2="178" y2="196" stroke="var(--accent)"/>
+            <text x="196" y="80" font-size="14" font-weight="700" fill="var(--fg)">🔷 PBI-8: Admin — Add user/role/org</text>
+            <line x1="196" y1="88" x2="640" y2="88" stroke="var(--border)"/>
+            <text x="196" y="104" font-size="8.5" fill="var(--fg)"><tspan font-weight="700">Summary:</tspan> Implement the admin screen to assign access.</text>
+            <text x="196" y="122" font-size="8.5" font-weight="700" fill="var(--fg)">CoA:</text>
+            <rect x="196" y="128" width="444" height="46" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+            <rect x="592" y="133" width="42" height="14" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="599" y="143" font-size="7.5" fill="var(--accent)">Copy</text>
+            <text x="204" y="145" font-size="7.5" fill="var(--fg)" font-family="monospace">- Administrators can add user/role/org.</text>
+            <text x="204" y="160" font-size="7.5" fill="var(--fg)" font-family="monospace">- The screen follows the group pattern.</text>
+            <rect x="196" y="186" width="180" height="86" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+            <circle cx="286" cy="225" r="15" fill="none" stroke="var(--muted)"/>
+            <line x1="297" y1="236" x2="306" y2="245" stroke="var(--muted)" stroke-width="2"/>
+            <text x="238" y="264" font-size="7" fill="var(--muted)">click to zoom</text>
+            <text x="392" y="200" font-size="8.5" fill="var(--fg)"><tspan font-weight="700">SP:</tspan> 3</text>
+            <text x="392" y="218" font-size="8" fill="var(--muted)">Relative images and links are re-based</text>
+            <text x="392" y="232" font-size="8" fill="var(--muted)">on the document's own URL, so screenshots</text>
+            <text x="392" y="246" font-size="8" fill="var(--muted)">embedded in the spec show up as well.</text>
+          </svg>
+          <p class="caption"><b>Markdown Text Viewer</b> — Right-click any .md link to read it as a rendered document with table of contents, image zoom, and search.</p>
+        </div>
+
+        <!-- Git Markdown Viewer -->
+        <div class="gallery-item">
+          <svg viewBox="0 0 660 330" role="img" aria-label="Git Markdown Viewer">
+            <defs>
+              <pattern id="gFill" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+                <rect width="7" height="7" fill="var(--panel)"/>
+                <line x1="0" y1="0" x2="0" y2="7" stroke="var(--border)" stroke-width="3.5"/>
+              </pattern>
+            </defs>
+            <rect x="6" y="6" width="648" height="318" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+            <path d="M6 15a9 9 0 0 1 9-9h630a9 9 0 0 1 9 9v26H6z" fill="var(--panel)"/>
+            <line x1="6" y1="41" x2="654" y2="41" stroke="var(--border)"/>
+            <text x="18" y="27" font-size="10" font-weight="700" fill="var(--fg)">🔀 Git Markdown Viewer</text>
+            <rect x="166" y="12" width="16" height="16" rx="3" fill="var(--bg)" stroke="var(--accent)"/>
+            <path d="M170 20l3 3 6-6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <text x="188" y="26" font-size="9" fill="var(--fg)">Changes only</text>
+            <rect x="596" y="11" width="48" height="18" rx="5" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="604" y="24" font-size="8" fill="var(--fg)">✕ Close</text>
+            <text x="18" y="58" font-size="8" font-weight="700" fill="var(--muted)">Old (base)</text>
+            <text x="340" y="58" font-size="8" font-weight="700" fill="var(--muted)">New (head)</text>
+            <line x1="330" y1="46" x2="330" y2="320" stroke="var(--border)"/>
+            <line x1="6" y1="64" x2="654" y2="64" stroke="var(--border)"/>
+            <rect x="6" y="64" width="648" height="26" fill="var(--panel)"/>
+            <line x1="6" y1="90" x2="654" y2="90" stroke="var(--border)"/>
+            <text x="18" y="81" font-size="7.5" fill="var(--fg)">▾</text>
+            <text x="32" y="81" font-size="7.5" font-weight="700" fill="var(--fg)" font-family="monospace">docs/spec/…/install-overview/index.md</text>
+            <rect x="330" y="70" width="3" height="13" fill="#cf222e"/>
+            <text x="338" y="81" font-size="7.5" fill="var(--muted)">removed/changed 2</text>
+            <rect x="440" y="70" width="3" height="13" fill="#1a7f37"/>
+            <text x="448" y="81" font-size="7.5" fill="var(--muted)">added/changed 3</text>
+            <rect x="556" y="69" width="18" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="561" y="81" font-size="8" fill="var(--fg)">↑</text>
+            <text x="580" y="81" font-size="7.5" fill="var(--muted)">1/3</text>
+            <rect x="604" y="69" width="18" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <text x="609" y="81" font-size="8" fill="var(--fg)">↓</text>
+            <rect x="6" y="228" width="648" height="18" fill="#0969da1f"/>
+            <rect x="6" y="228" width="648" height="18" fill="none" stroke="#0969da66"/>
+            <g font-size="7" fill="var(--muted)" text-anchor="end" font-family="monospace">
+              <text x="28" y="110">6</text><text x="28" y="130">7</text><text x="28" y="174">8</text>
+              <text x="28" y="190">9</text><text x="28" y="241">10</text>
+            </g>
+            <text x="38" y="110" font-size="8" fill="var(--fg)">Is Visual C++ 2013 Redistribute installed?</text>
+            <rect x="34" y="118" width="286" height="34" rx="3" fill="#ffebe9"/>
+            <rect x="34" y="118" width="3" height="34" fill="#cf222e"/>
+            <rect x="42" y="122" width="21" height="12" rx="4" fill="#8957e5"/>
+            <text x="52.5" y="131" font-size="7" font-weight="700" fill="#fff" text-anchor="middle">1-o</text>
+            <text x="68" y="131" font-size="7.5" fill="#1f2328">The installer detects whether the</text>
+            <text x="42" y="145" font-size="7.5" fill="#1f2328">Visual C++ 2013 package is installed.</text>
+            <text x="38" y="174" font-size="8" fill="var(--fg)">- VC++ 2015: 0 (ex.14.0.xxxxx)</text>
+            <text x="38" y="190" font-size="8" fill="var(--fg)">- VC++ 2017: 1 (ex.14.1x.xxxxx)</text>
+            <rect x="34" y="198" width="286" height="24" rx="3" fill="url(#gFill)"/>
+            <text x="38" y="241" font-size="8" fill="var(--fg)">- VC++ 2019: 2 (ex.14.2x.xxxxx)</text>
+            <g font-size="7" fill="var(--muted)" text-anchor="end" font-family="monospace">
+              <text x="350" y="110">6</text><text x="350" y="130">7</text><text x="350" y="174">8</text>
+              <text x="350" y="190">9</text><text x="350" y="212">10</text><text x="350" y="241">11</text>
+            </g>
+            <text x="360" y="110" font-size="8" fill="var(--fg)">Is Visual C++ 2013 Redistribute installed?</text>
+            <rect x="356" y="118" width="286" height="34" rx="3" fill="#e6ffec"/>
+            <rect x="356" y="118" width="3" height="34" fill="#1a7f37"/>
+            <rect x="364" y="122" width="21" height="12" rx="4" fill="#8957e5"/>
+            <text x="374.5" y="131" font-size="7" font-weight="700" fill="#fff" text-anchor="middle">1-n</text>
+            <text x="390" y="131" font-size="7.5" fill="#1f2328">As of DEV-3981, the installer no</text>
+            <text x="364" y="145" font-size="7.5" fill="#1f2328">longer installs the Visual C++ 2013 pkg.</text>
+            <text x="360" y="174" font-size="8" fill="var(--fg)">- VC++ 2015: 0 (ex.14.0.xxxxx)</text>
+            <text x="360" y="190" font-size="8" fill="var(--fg)">- VC++ 2017: 1 (ex.14.1x.xxxxx)</text>
+            <rect x="356" y="198" width="286" height="24" rx="3" fill="#e6ffec"/>
+            <rect x="356" y="198" width="3" height="24" fill="#1a7f37"/>
+            <rect x="364" y="203" width="21" height="12" rx="4" fill="#6e7681"/>
+            <text x="374.5" y="212" font-size="7" font-weight="700" fill="#fff" text-anchor="middle">2-n</text>
+            <text x="390" y="212" font-size="7.5" fill="#1f2328">Note: Windows 8 handling removed.</text>
+            <text x="360" y="241" font-size="8" fill="var(--fg)">- VC++ 2019: 2 (ex.14.2x.xxxxx)</text>
+            <text x="38" y="266" font-size="7.5" fill="var(--muted)">▨ blank space opposite an added block — both sides stay level</text>
+            <text x="38" y="280" font-size="7.5" fill="var(--muted)">1-o ⇄ 1-n  two halves of one change; click either to jump to the other</text>
+            <text x="38" y="294" font-size="7.5" fill="var(--muted)">▬ line 10 picked: highlighted on both sides</text>
+            <rect x="470" y="288" width="164" height="26" rx="13" fill="#1f6feb"/>
+            <text x="486" y="305" font-size="9" font-weight="700" fill="#fff">📄 View .md diff (2)</text>
+          </svg>
+          <p class="caption"><b>Git Markdown Viewer</b> — Side-by-side rendered diff of .md files in a pull request. Changes are paired and navigable with ↑↓ buttons.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PBI Board -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-text">
+        <span class="badge badge-web">Web App</span>
+        <h2>PBI Board</h2>
+        <p>Manage and sort PBI for multi-team refinement sessions. Drag-and-drop cards across columns, filter by team, and prepare your sprint backlog visually.</p>
+        <a class="btn" href="garoon/refinement/pbi-board.html">Open PBI Board →</a>
+      </div>
+      <div class="card-media">
+        <!-- Kanban-style board illustration -->
+        <svg viewBox="0 0 320 220" role="img" aria-label="PBI Board with kanban columns">
+          <rect x="6" y="6" width="308" height="208" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+          <path d="M6 16a10 10 0 0 1 10-10h288a10 10 0 0 1 10 10v24H6z" fill="#2563eb"/>
+          <text x="20" y="31" font-size="11" font-weight="700" fill="#fff">PBI Board — Refinement</text>
+          <rect x="268" y="18" width="36" height="14" rx="7" fill="rgba(255,255,255,.22)"/>
+          <text x="274" y="28" font-size="7.5" fill="#fff">Sort ▾</text>
+
+          <!-- Column 1: To Refine -->
+          <g>
+            <rect x="16" y="50" width="88" height="156" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+            <text x="26" y="66" font-size="7.5" font-weight="700" fill="var(--muted)">TO REFINE</text>
+            <rect x="22" y="74" width="76" height="36" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <rect x="26" y="78" width="6" height="6" rx="1.5" fill="#ef4444"/>
+            <text x="36" y="84" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-24</text>
+            <text x="26" y="96" font-size="6" fill="var(--muted)">Admin mail setup</text>
+            <rect x="60" y="98" width="16" height="8" rx="2" fill="#fef3c7"/>
+            <text x="63" y="104.5" font-size="5" font-weight="700" fill="#92400e">5</text>
+
+            <rect x="22" y="116" width="76" height="36" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <rect x="26" y="120" width="6" height="6" rx="1.5" fill="#f59e0b"/>
+            <text x="36" y="126" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-25</text>
+            <text x="26" y="138" font-size="6" fill="var(--muted)">User role assign</text>
+            <rect x="60" y="140" width="16" height="8" rx="2" fill="#fef3c7"/>
+            <text x="63" y="146.5" font-size="5" font-weight="700" fill="#92400e">3</text>
+
+            <rect x="22" y="158" width="76" height="36" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <rect x="26" y="162" width="6" height="6" rx="1.5" fill="#3b82f6"/>
+            <text x="36" y="168" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-26</text>
+            <text x="26" y="180" font-size="6" fill="var(--muted)">Notification API</text>
+            <rect x="60" y="182" width="16" height="8" rx="2" fill="#fef3c7"/>
+            <text x="63" y="188.5" font-size="5" font-weight="700" fill="#92400e">8</text>
+          </g>
+
+          <!-- Column 2: In Progress -->
+          <g>
+            <rect x="116" y="50" width="88" height="156" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+            <text x="126" y="66" font-size="7.5" font-weight="700" fill="var(--muted)">IN PROGRESS</text>
+            <rect x="122" y="74" width="76" height="36" rx="4" fill="var(--bg)" stroke="#2563eb" stroke-width="1.5"/>
+            <rect x="126" y="78" width="6" height="6" rx="1.5" fill="#8b5cf6"/>
+            <text x="136" y="84" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-21</text>
+            <text x="126" y="96" font-size="6" fill="var(--muted)">Schedule export</text>
+            <rect x="160" y="98" width="16" height="8" rx="2" fill="#dbeafe"/>
+            <text x="163" y="104.5" font-size="5" font-weight="700" fill="#1e40af">5</text>
+
+            <rect x="122" y="116" width="76" height="36" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <rect x="126" y="120" width="6" height="6" rx="1.5" fill="#10b981"/>
+            <text x="136" y="126" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-22</text>
+            <text x="126" y="138" font-size="6" fill="var(--muted)">Batch import fix</text>
+            <rect x="160" y="140" width="16" height="8" rx="2" fill="#dbeafe"/>
+            <text x="163" y="146.5" font-size="5" font-weight="700" fill="#1e40af">2</text>
+          </g>
+
+          <!-- Column 3: Done -->
+          <g>
+            <rect x="216" y="50" width="88" height="156" rx="6" fill="var(--panel)" stroke="var(--border)"/>
+            <text x="226" y="66" font-size="7.5" font-weight="700" fill="var(--muted)">DONE</text>
+            <rect x="222" y="74" width="76" height="36" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <rect x="226" y="78" width="6" height="6" rx="1.5" fill="#10b981"/>
+            <text x="236" y="84" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-18</text>
+            <text x="226" y="96" font-size="6" fill="var(--muted)">Login audit log</text>
+            <text x="266" y="84" font-size="8" fill="#10b981">✓</text>
+
+            <rect x="222" y="116" width="76" height="36" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+            <rect x="226" y="120" width="6" height="6" rx="1.5" fill="#10b981"/>
+            <text x="236" y="126" font-size="6.5" font-weight="600" fill="var(--fg)">PBI-19</text>
+            <text x="226" y="138" font-size="6" fill="var(--muted)">CSV download</text>
+            <text x="266" y="126" font-size="8" fill="#10b981">✓</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>&copy; 2026 Support Tools</footer>
+
 </body>
 </html>
